@@ -1,11 +1,8 @@
 package Tree_Rules.Token.mete.constant.ConstantImpl;
 
-import Tree_Rules.Token.mete.constant.Constant;
-import Tree_Rules.rule;
-
 import java.math.BigInteger;
 
-public class ConstantInteger extends Constant {
+public class ConstantInteger extends Tree_Rules.Token.mete.constant.Constant {
     private BigInteger Constant;
 
     public ConstantInteger(String meteName, int[] ranges){

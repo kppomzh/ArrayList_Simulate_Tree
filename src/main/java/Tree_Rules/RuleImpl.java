@@ -3,10 +3,18 @@ package Tree_Rules;
 import java.util.HashMap;
 
 public abstract class RuleImpl implements rule {
-    //规则名称
+    /**
+     * 规则名称
+     */
     protected String RuleName;
-    //规则的父规则集合
+    /**
+     * 规则的父规则集合，暂时无用
+     */
     private HashMap<String,rule> parents;
+    /**
+     * 规则的父规则，通过set方法设置。
+     */
+    protected rule parent;
 
     public RuleImpl(String ruleName){
         this.RuleName=ruleName;
@@ -24,8 +32,13 @@ public abstract class RuleImpl implements rule {
     public abstract rule getRule(String prefix);
 
     @Override
-    public rule getParent(String RuleName){
-        return parents.get(RuleName);
+    public void setParent(rule parentRule){
+        parent=parentRule;
+    }
+
+    @Override
+    public rule getParent(){
+        return parent;
     }
 
     @Override

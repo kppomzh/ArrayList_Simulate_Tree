@@ -2,9 +2,12 @@ package Tree_Rules;
 
 import java.util.HashMap;
 
-public class Rule_tree extends RuleImpl {
+/**
+ * 带分支的语法分支
+ */
+public class Rule_Tree extends RuleImpl {
     private HashMap<String,rule> childRuleList_FirstColle;
-    public Rule_tree(String ruleName)
+    public Rule_Tree(String ruleName)
     {
         super(ruleName);
         childRuleList_FirstColle=new HashMap<>();
@@ -17,7 +20,9 @@ public class Rule_tree extends RuleImpl {
 
     @Override
     public rule getRule(String prefix) {
-        return childRuleList_FirstColle.get(prefix);
+        rule Rule=childRuleList_FirstColle.get(prefix);
+        Rule.setParent(this);
+        return Rule;
     }
 
     @Override

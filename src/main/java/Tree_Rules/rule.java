@@ -16,11 +16,13 @@ public interface rule {
      */
     rule getRule(String prefix);
 
+
+    void setParent(rule parentRule);
     /**
-     * @param RuleName 预存的父规则名称
+     * //@param RuleName 预存的父规则名称
      * @return 获取规则的父规则以继续分析流程
      */
-    rule getParent(String RuleName);
+    rule getParent();
 
     /**
      * @return 获取当前规则的首符集

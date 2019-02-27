@@ -1,8 +1,6 @@
 package Tree_Rules.Token.mete.constant.ConstantImpl;
 
-import Tree_Rules.Token.mete.constant.Constant;
-
-public class ConstantString extends Constant {
+public class ConstantString extends Tree_Rules.Token.mete.constant.Constant {
     private String Constant;
 
     public ConstantString(String meteName, int[] ranges) {

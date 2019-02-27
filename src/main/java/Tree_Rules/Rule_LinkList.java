@@ -3,8 +3,12 @@ package Tree_Rules;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+/**
+ * 顺序的语法分支
+ */
 public class Rule_LinkList extends RuleImpl {
-    private LinkedList<rule> lineofrule=new LinkedList<>();
+    protected int nowRule=0;
+    protected LinkedList<rule> lineofrule=new LinkedList<>();
 
     public Rule_LinkList(String ruleName) {
         super(ruleName);
@@ -26,13 +30,44 @@ public class Rule_LinkList extends RuleImpl {
 
     @Override
     public rule getRule(String prefix) {
-        if(lineofrule.get(0).getRule(prefix)!=null)
-            return this;
+        if(checkPrefix(prefix)){
+            rule Rule=lineofrule.get(nowRule);
+            Rule.setParent(this);
+            nowRule++;
+            return Rule;
+        }
+        //所有的循环结构都应该是可以跳过的
+        else while(lineofrule.get(nowRule) instanceof Rule_Loop){
+            nowRule++;
+            if(checkPrefix(prefix)){
+                rule Rule=lineofrule.get(nowRule);
+                Rule.setParent(this);
+                nowRule++;
+                return Rule;
+            }
+        }
         return null;
+    }
+
+    /**
+     * <p>防止在本条规则没有解析完的时候就退出解析。</p>
+     */
+    @Override
+    public rule getParent(){
+        if(nowRule<lineofrule.size())
+            return null;
+        return parent;
     }
 
     @Override
     public String[] getBaseToken() {
         return lineofrule.get(0).getBaseToken();
+    }
+
+    private boolean checkPrefix(String prefix){
+        if(nowRule==lineofrule.size())
+            return false;
+
+        return lineofrule.get(nowRule).getRule(prefix)!=null;
     }
 }

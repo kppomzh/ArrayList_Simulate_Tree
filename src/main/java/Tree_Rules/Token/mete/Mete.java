@@ -1,9 +1,8 @@
 package Tree_Rules.Token.mete;
 
-import Tree_Rules.RuleImpl;
-import Tree_Rules.rule;
+import Tree_Rules.Token.TokenIum;
 
-public abstract class Mete extends RuleImpl {
+public abstract class Mete extends TokenIum {
     //该变量或常量的名称
     protected String meteName;
 
@@ -14,24 +13,5 @@ public abstract class Mete extends RuleImpl {
 
     public String getMeteName(){
         return meteName;
-    }
-
-    @Override
-    public String[] getBaseToken(){
-        return new String[]{RuleName};
-    }
-
-    @Override
-    public rule getRule(rule r) {
-        if(this.equals(r))
-            return this;
-        return null;
-    }
-
-    @Override
-    public rule getRule(String prefix) {
-        if(RuleName.equals(prefix))
-            return this;
-        return null;
     }
 }
