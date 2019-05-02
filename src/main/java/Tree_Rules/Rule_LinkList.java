@@ -30,20 +30,21 @@ public class Rule_LinkList extends RuleImpl {
 
     @Override
     public rule getRule(String prefix) {
-        if(checkPrefix(prefix)){
-            rule Rule=lineofrule.get(nowRule);
-            Rule.setParent(this);
-            nowRule++;
-            return Rule;
+        if(nowRule==lineofrule.size())
+            return parent;
+
+        if(lineofrule.get(nowRule).getRule(prefix)!=null){
+            return pgetRule();
         }
         //所有的循环结构都应该是可以跳过的
         else while(lineofrule.get(nowRule) instanceof Rule_Loop){
             nowRule++;
-            if(checkPrefix(prefix)){
-                rule Rule=lineofrule.get(nowRule);
-                Rule.setParent(this);
-                nowRule++;
-                return Rule;
+            if(nowRule==lineofrule.size())
+                break;
+            //因为这里一旦没找到的话，不能直接返回null值，所以不能将这个if和上文的if一起抽取出来单独成立方法。
+            //如果抽出来的话这里还要单独加一个null判断，得不偿失。
+            if(lineofrule.get(nowRule).getRule(prefix)!=null){
+                return pgetRule();
             }
         }
         return null;
@@ -64,10 +65,10 @@ public class Rule_LinkList extends RuleImpl {
         return lineofrule.get(0).getBaseToken();
     }
 
-    private boolean checkPrefix(String prefix){
-        if(nowRule==lineofrule.size())
-            return false;
-
-        return lineofrule.get(nowRule).getRule(prefix)!=null;
+    protected rule pgetRule(){
+        rule Rule=lineofrule.get(nowRule);
+        Rule.setParent(this);
+        nowRule++;
+        return Rule;
     }
 }

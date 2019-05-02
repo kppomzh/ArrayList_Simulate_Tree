@@ -1,7 +1,9 @@
 package Tree_Rules.Token.mete.constant.ConstantImpl;
 
-public class ConstantString extends Tree_Rules.Token.mete.constant.Constant {
-    private String Constant;
+import Tree_Rules.Token.mete.constant.ConstantBase;
+
+public class ConstantString extends ConstantBase {
+    private String ConstantBase;
 
     public ConstantString(String meteName, int[] ranges) {
         super("String", meteName,ranges);
@@ -12,12 +14,11 @@ public class ConstantString extends Tree_Rules.Token.mete.constant.Constant {
         if(constantString.length()>range[0]){
             return false;
         }
-        Constant=constantString;
+        ConstantBase =constantString;
         return true;
     }
 
-    @Override
     public String getConstant() {
-        return Constant;
+        return ConstantBase;
     }
 }

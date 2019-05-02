@@ -1,6 +1,7 @@
 package TreePropertiesReader;
 
 import Tree_Rules.Rule_LinkList;
+import Tree_Rules.Rule_Loop;
 import Tree_Rules.Rule_Tree;
 import Tree_Rules.Token.TokenIum;
 import Tree_Rules.rule;
@@ -15,8 +16,9 @@ public class Reader {
     private Properties ruleProperties = new Properties();
     private HashMap<String, rule> ruleMap = new HashMap<>();
 
-    public void loadRules() throws IOException {
-        ruleProperties.load(new FileInputStream(new File("")));
+    public void loadRules(String... propertiePath) throws IOException {
+        for(String s:propertiePath)
+            ruleProperties.load(new FileInputStream(new File(s)));
     }
 
     public HashMap<String, rule> makeMap() {
@@ -53,6 +55,15 @@ public class Reader {
                 rule.add_Rule(ruleMap.get(s));
             }
         }
-
+        else if(ruleProperties.getProperty(ruleName).indexOf("(") != -1){
+            Rule_Loop rule =new Rule_Loop(ruleName);
+            treeOlist= ruleProperties.getProperty(ruleName).substring(1).split(" ");
+            for (String s :treeOlist){
+                if(!ruleMap.containsKey(s)){
+                    makeRule(s);
+                }
+                rule.add_Rule(ruleMap.get(s));
+            }
+        }
     }
 }

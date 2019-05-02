@@ -21,6 +21,8 @@ public class Rule_Tree extends RuleImpl {
     @Override
     public rule getRule(String prefix) {
         rule Rule=childRuleList_FirstColle.get(prefix);
+        if(Rule==null)
+            return null;
         Rule.setParent(this);
         return Rule;
     }

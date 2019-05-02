@@ -1,11 +1,11 @@
 package Tree_Rules.Token.mete.variable;
 
-import Tree_Rules.Token.mete.Mete;
+import Tree_Rules.Token.mete.MeteBase;
 
 /**
  * 变量，目前主要用来指在SQL当中出现的表、列、表空间、序列
  */
-public class Variable extends Mete {
+public class Variable extends MeteBase {
     /**
      * @param tokenName 指定该Variable：表、列、表空间、序列，当然也可以写任何的关键字
      * @param meteName 指定该Variable的名称

@@ -1,9 +1,11 @@
 package Tree_Rules.Token.mete.constant.ConstantImpl;
 
+import Tree_Rules.Token.mete.constant.ConstantBase;
+
 import java.math.BigDecimal;
 
 //常数
-public class ConstantDecimal extends Tree_Rules.Token.mete.constant.Constant {
+public class ConstantDecimal extends ConstantBase {
     private int intrange,decrange;
     private BigDecimal Constant;
 
