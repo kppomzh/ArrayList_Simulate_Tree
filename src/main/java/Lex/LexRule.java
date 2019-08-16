@@ -21,11 +21,12 @@ public class LexRule {
         charMap[37]=4;
         charMap[38]=4;
         charMap[42]=4;
-        charMap[43]=4;
+        charMap[43]=4;//+
         charMap[44]=4;
-        charMap[45]=7;
+        charMap[45]=4;//-
         charMap[46]=6;//多义符号 .
         charMap[47]=4;
+        charMap[58]=4;
         charMap[60]=4;
         charMap[61]=4;
         charMap[62]=4;
@@ -100,18 +101,24 @@ public class LexRule {
         charMap[121]=1;
         charMap[122]=1;
 
+        //中括号与小括号
         charMap[91]=5;
         charMap[93]=5;
         charMap[40]=5;
         charMap[41]=5;
 
+        charMap[34]=9;
         charMap[39]=3;
+        charMap[92]=8;
     }
 
     int[] charMap;
 
     private int getStatus(char c){
-        return charMap[c];
+        if(c>=0&&c<=127)
+            return charMap[c];
+        else
+            return 1;
     }
 
     public static int getCharStatus(char c){

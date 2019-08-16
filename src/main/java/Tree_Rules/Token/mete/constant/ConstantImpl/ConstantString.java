@@ -18,6 +18,7 @@ public class ConstantString extends ConstantBase {
         return true;
     }
 
+    @Override
     public String getConstant() {
         return ConstantBase;
     }
