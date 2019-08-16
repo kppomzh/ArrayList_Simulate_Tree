@@ -14,7 +14,7 @@ public abstract class ConstantBase extends MeteBase {
      * @param meteName 指定该Constant的名称
      * @param ranges 指定变量长度
      */
-    public ConstantBase(String tokenName, String meteName, int[] ranges) {
+    public ConstantBase(String tokenName, String meteName, int... ranges) {
         super(tokenName, meteName);
         this.range=ranges;
     }
