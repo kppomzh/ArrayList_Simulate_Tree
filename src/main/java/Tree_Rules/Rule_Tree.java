@@ -32,9 +32,12 @@ public class Rule_Tree extends RuleImpl {
         return childRuleList_FirstColle.keySet().toArray(new String[0]);
     }
 
-    public void add_Child_Rule(rule childRule) {
+    public void add_Child_Rule(rule childRule) throws ClassNotFoundException {
         //首符集需要向下一直找到单词为止
         for(String token:childRule.getBaseToken())
             childRuleList_FirstColle.put(token,childRule);
+
+        Class.forName(childRule.getRuleName());
+
     }
 }

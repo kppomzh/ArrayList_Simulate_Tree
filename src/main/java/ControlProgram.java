@@ -15,7 +15,11 @@ public class ControlProgram {
     public ControlProgram() throws IOException {
         r=new Reader();
         r.loadRules("");
-        RuleMap=r.makeMap();
+        try {
+            RuleMap=r.makeMap();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
         base=RuleMap.get("Base");
         nowRule=base;
     }

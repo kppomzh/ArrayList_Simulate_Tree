@@ -21,7 +21,7 @@ public class Reader {
             ruleProperties.load(new FileInputStream(new File(s)));
     }
 
-    public HashMap<String, rule> makeMap() {
+    public HashMap<String, rule> makeMap() throws ClassNotFoundException {
         for(Object ruleName:ruleProperties.keySet()){
             makeRule((String) ruleName);
         }
@@ -29,7 +29,7 @@ public class Reader {
         return ruleMap;
     }
 
-    private void makeRule(String ruleName) {
+    private void makeRule(String ruleName) throws ClassNotFoundException {
         String[] treeOlist;
         if (ruleProperties.getProperty(ruleName) == null) {
             ruleMap.put(ruleName, new TokenIum(ruleName));
