@@ -9,8 +9,8 @@ import java.util.List;
 
 public class LexTest {
     public static String[] sqls={
-            "select \"MainID\",id pid,name pname from first where id=3 or name='kppom';",
-            "select tra,rbg,dsf,dsa \n" +
+//            "select \"MainID\",id pid,name pname from first where id=3 or name='kppom';",
+            "select tra,rbg,dsf,public.fisrt.dsa \n" +
                     "from fisrt,(select *from second) second \n" +
                     "where fisrt.name is null;"
             ,"create Table first (id int,name StrINg,time double);"

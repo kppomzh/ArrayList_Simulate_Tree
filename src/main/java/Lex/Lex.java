@@ -54,6 +54,7 @@ public class Lex {
                     break;
                 case 4://符号
                 case 5:
+                case 6:
                     words.add(status4());
                     break;
                 case -3://遇到了注释并且在列表里加入了一个null，此时将null移除
@@ -110,7 +111,7 @@ public class Lex {
             switch (status) {
                 case 1:
                 case 2:
-                case 6:
+//                case 6:
                     if(toLowercase)
                         sb.append(getSmallLetter(thisSQL.charAt(loop)));
                     else
@@ -234,6 +235,7 @@ public class Lex {
                     throw new InvalidSymbolException(line, list, thisSQL.charAt(loop));
                 case 4:
                 case 5://扫描到括号
+                case 6://用于分割标识符的句号
                     //如果组成的符号字符串不在关键字符号表里，那么就会以当前的StringBuilder返回
                     if(IdentifierSetter.isMark(sb.toString()+thisSQL.charAt(loop))) {
                         sb.append(thisSQL.charAt(loop));
