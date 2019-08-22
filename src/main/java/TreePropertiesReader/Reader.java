@@ -1,10 +1,10 @@
 package TreePropertiesReader;
 
-import Tree_Rules.Rule_LinkList;
-import Tree_Rules.Rule_Loop;
-import Tree_Rules.Rule_Tree;
-import Tree_Rules.Token.TokenIum;
-import Tree_Rules.rule;
+import bean.Parser.Tree_Rules.Rule_LinkList;
+import bean.Parser.Tree_Rules.Rule_Loop;
+import bean.Parser.Tree_Rules.Rule_Tree;
+import bean.Parser.Tree_Rules.TokenIum;
+import bean.Parser.Tree_Rules.rule;
 
 import java.io.File;
 import java.io.FileInputStream;

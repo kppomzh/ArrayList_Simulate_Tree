@@ -18,7 +18,7 @@ public class IdentifierSetter {
     };
     private static String[] markArray={"+","-","*","/","^","%",
             "=",":=","==",">",">=","<","<=","!=",".",
-            ",","(",")","\'"//,";"
+            ",","(",")","\'","&","|"
     };
     private static String[] annotationArray={"--","/*","*/"}; //注释符号
 

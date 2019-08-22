@@ -1,5 +1,5 @@
 import TreePropertiesReader.Reader;
-import Tree_Rules.rule;
+import bean.Parser.Tree_Rules.rule;
 
 import java.io.IOException;
 import java.util.HashMap;

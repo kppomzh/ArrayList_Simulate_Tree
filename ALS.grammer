@@ -9,41 +9,45 @@ S:commit
 S:MESSAGESQL
 
 CREATESQL:create CREATEQUERY
-CREATEQUERY:table TABLE_ALL_NAME ( LISTDEFINE LISTDEFINES )
+CREATEQUERY:table Table_all_Name ( List_Define List_Defines )
 CREATEQUERY:tablespace TABLESPACENAME
-LISTDEFINE:LISTNAME QUANTIFIER_TYPE LISTDEFINE_LENGTH
-LISTDEFINE_LENGTH:( INTEGER )
-LISTDEFINE_LENGTH:ε
-LISTDEFINES:, LISTDEFINE LISTDEFINES
-LISTDEFINES:ε
+List_Define:LISTNAME Quantifier_TYPE List_Define_Length
+List_Define_Length:( INTEGER )
+List_Define_Length:ε
+List_Defines:, List_Define List_Defines
+List_Defines:ε
 
 DROPSQL:drop DROPQUERY
-DROPQUERY:table TABLE_ALL_NAME
+DROPQUERY:table Table_all_Name
 DROPQUERY:tablespace TABLESPACENAME
 
 SELECTSQL:SUBQUERY UNION_CLAUSE ORDERBY_CLAUSE
 UNION_CLAUSE:union SUBQUERY
 UNION_CLAUSE:ε
 SUBQUERY:select LISTQUERY LISTQUERYS from TABLEQUERY WHERE_CLAUSE
-LISTQUERY:LIST_ALL_NAME
+LISTQUERY:List_all_Name
 LISTQUERY:FRONTTABLE *
-FRONTTABLE:TABLE_ALL_NAME .
+LISTQUERY:Math_Expression
+FRONTTABLE:Table_all_Name .
 FRONTTABLE:ε
 LISTQUERYS:, LISTQUERY LISTQUERYS
 LISTQUERYS:ε
-TABLEQUERY:TABLE_ALL_NAME NEW_TABLENAME
+TABLEQUERY:Table_all_Name NEW_TABLENAME
 TABLEQUERY:( SELECTSQL ) NEW_TABLENAME
 
 WHERE_CLAUSE:where BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 WHERE_CLAUSE:ε
-BOOLEAN_EXPRESSION:QUANTIFIER|LIST_ALL_NAME = QUANTIFIER
+BOOLEAN_EXPRESSION:Quantifier Boolean_Contrast Quantifier BOOLEAN_EXPRESSION_Link
+BOOLEAN_EXPRESSION:List_all_Name Boolean_Contrast Quantifier BOOLEAN_EXPRESSION_Link
+BOOLEAN_EXPRESSION_Link:Boolean_Operation BOOLEAN_EXPRESSION BOOLEAN_EXPRESSION_Link
+BOOLEAN_EXPRESSION_Link:ε
 BOOLEAN_EXPRESSIONS:, BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:and BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:or BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:ε
 
 GROUPBY_CLAUSE:group by LISTQUERY LISTQUERYS
-ORDERBY_CLAUSE:order by LIST_ALL_NAME ORDERBY_OPTION
+ORDERBY_CLAUSE:order by List_all_Name ORDERBY_OPTION
 ORDERBY_OPTION:desc
 ORDERBY_OPTION:asc
 
@@ -54,16 +58,16 @@ LIST_CLAUSE:, LISTNAME LIST_CLAUSE
 LIST_CLAUSE:ε
 VALUE_FROM:values INSERT_VARIABLE_CLAUSE
 # VALUE_FROM:SUBQUERY
-INSERT_VARIABLE_CLAUSE:( QUANTIFIER QUANTIFIERS )
+INSERT_VARIABLE_CLAUSE:( Math_Expression Quantifiers )
 
-DELETESQL:delete from TABLE_ALL_NAME WHERE_CLAUSE
+DELETESQL:delete from Table_all_Name WHERE_CLAUSE
 
-UPDATESQL:update TABLE_ALL_NAME set LISTNAME=QUANTIFIER SET_CLAUSE
-SET_CLAUSE:, LISTNAME = QUANTIFIER SET_CLAUSE
+UPDATESQL:update Table_all_Name set LISTNAME Congruent Math_Expression SET_CLAUSE
+SET_CLAUSE:, LISTNAME Congruent Math_Expression SET_CLAUSE
 SET_CLAUSE:ε
 
 ALTERSQL:alter table TABLENAME CHANGE_TABLE_QUERY
-CHANGE_TABLE_QUERY:add column LISTNAME QUANTIFIER_TYPE
+CHANGE_TABLE_QUERY:add column LISTNAME Quantifier_TYPE
 CHANGE_TABLE_QUERY:del column LISTNAME
 
 TABLENAME:NormalTAG
@@ -72,22 +76,76 @@ LISTNAME:NormalTAG
 SEQUENCENAME:NormalTAG
 CURSORNAME:NormalTAG
 
-TABLE_ALL_NAME:TABLESPACENAME . TABLENAME
-LIST_ALL_NAME:TABLESPACENAME . TABLENAME . LISTNAME
+Table_all_Name:TABLESPACENAME . TABLENAME
+List_all_Name:TABLESPACENAME . TABLENAME . LISTNAME
 
 NEW_TABLENAME:NormalTAG
 NEW_TABLENAME:ε
 NEW_LISTNAME:NormalTAG
 NEW_LISTNAME:ε
 
-QUANTIFIER:STRING
-QUANTIFIER:DOUBLE
-QUANTIFIER:INTEGER
-QUANTIFIERS:, QUANTIFIER QUANTIFIERS
-QUANTIFIERS:ε
-QUANTIFIER_TYPE:string
-QUANTIFIER_TYPE:double
-QUANTIFIER_TYPE:int
+Quantifier:STRING
+Quantifier:DOUBLE
+Quantifier:INTEGER
+# Quantifier:Math_Expression
+Quantifiers:, Math_Expression Quantifiers
+Quantifiers:ε
+Quantifier_TYPE:string
+Quantifier_TYPE:double
+Quantifier_TYPE:int
+
+Congruent::=
+Congruent:=
+Boolean_Contrast:=
+Boolean_Contrast:==
+Boolean_Contrast:>
+Boolean_Contrast:>=
+Boolean_Contrast:<
+Boolean_Contrast:<=
+Boolean_Contrast:!=
+
+Math_Expression:next1_Math_Expression Binary_1_Math_Expression
+Binary_1_Math_Expression:Binary_1_Operator Binary_1_Math_Expression
+Binary_1_Math_Expression:ε
+next1_Math_Expression:next2_Math_Expression Binary_2_Math_Expression
+Binary_2_Math_Expression:Binary_2_Operator next2_Math_Expression Binary_2_Math_Expression
+Binary_2_Math_Expression:ε
+next2_Math_Expression:next3_Math_Expression Binary_3_Math_Expression
+Binary_2_Math_Expression:Binary_3_Operator next3_Math_Expression Binary_3_Math_Expression
+Binary_2_Math_Expression:ε
+next3_Math_Expression:Math_Function_Expression
+next3_Math_Expression:( Math_Expression )
+next3_Math_Expression:Math_Unary_Expression
+next3_Math_Expression:Quantifier
+
+Math_Unary_Expression:Unary_Operator Quantifier
+Math_Function_Expression:Math_Function ( Quantifier_Link )
+# Quantifier_Link:ε
+Quantifier_Link:Quantifier Quantifiers
+
+Unary_Operator:!
+Unary_Operator:~
+Binary_1_Operator:+
+Binary_1_Operator:-
+Binary_2_Operator:*
+Binary_2_Operator:/
+Binary_2_Operator:%
+Binary_3_Operator:^
+Binary_Operator:Boolean_Operator
+Boolean_Operator:&
+Boolean_Operator:|
+
+Math_Function:abs
+Math_Function:pow
+Math_Function:sqrt
+Math_Function:round
+Math_Function:sin
+Math_Function:cos
+Math_Function:tan
+Math_Function:min
+Math_Function:max
+Math_Function:sum
+Math_Function:avg
 
 string:
 double:
@@ -95,3 +153,72 @@ int:
 STRING:
 DOUBLE:
 INTERGER:
+NormalTAG:
+
+create:
+drop:
+insert:
+delete:
+update:
+select:
+alter:
+commit:
+
+from:
+where:
+union:
+set:
+into:
+order:
+group:
+by:
+asc:
+desc:
+add:
+del:
+column:
+values:
+
+and:
+or:
+in:
+
+table:
+tablespace:
+
+is:
+not:
+null:
+
+abs:
+ln:
+pow:
+sin:
+cos:
+tan:
+sqrt:
+round:
+
++:
+-:
+*:
+/:
+~:
+!:
+%:
+^:
+(:
+):
+=:
+==:
+:=:
+>:
+<:
+>=:
+<=:
+!=:
+&:
+|:
+':
+,:
+.:
