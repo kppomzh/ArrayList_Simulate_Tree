@@ -1,6 +1,10 @@
 package bean;
 
-public class Word {
+import Tree_Span.BranchTreeRoot;
+
+import java.util.Collection;
+
+public class Word extends BranchTreeRoot {
     private String type;//单词的语法分类
     private String name;//单词的实际名称，如果是常量的话就写常量的类型名称
     private String substance;//单词的实际内容，只对常量、对象名称有效
@@ -47,5 +51,20 @@ public class Word {
             return name==null?0:name.length();
         else
             return substance.length();
+    }
+
+    @Override
+    protected void addChild(BranchTreeRoot child) {
+
+    }
+
+    @Override
+    protected Collection<?> getChilds() {
+        return null;
+    }
+
+    @Override
+    protected void SetAttribute(String attr, String o) {
+
     }
 }

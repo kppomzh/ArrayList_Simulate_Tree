@@ -1,6 +1,8 @@
 package Parser;
 
+import Exceptions.ParserError.ParserBaseException;
 import Tree_Span.BranchTreeRoot;
+import Tree_Span.Impl.S;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Word;
 
@@ -13,18 +15,19 @@ public class Parser {
     private PredictiveAnalysisTable pat;
     private LinkedList<String> analysisStack;
 
-    public Parser(){
+    public Parser(PredictiveAnalysisTable pat){
+        this.pat=pat;
         analysisStack=new LinkedList<>();
         analysisStack.push("S");
     }
 
-    public BranchTreeRoot Controller(LinkedList<Word> words){
-        BranchTreeRoot grammerTree=new BranchTreeRoot();
+    public BranchTreeRoot Controller(LinkedList<Word> words) throws ParserBaseException {
+        BranchTreeRoot grammerTree=new S();
         LinkedList<String> nextListRule;
 
         while(!analysisStack.isEmpty()){
             if(words.isEmpty()){
-                nextListRule = pat.getNextRule(analysisStack.getFirst(), "#");
+                nextListRule = pat.getNextRule(analysisStack.getFirst(), new Word("#",0,0));
                 if (nextListRule.get(0).equals("ε")) {
                     analysisStack.pop();
                 }else{
@@ -39,7 +42,7 @@ public class Parser {
                 words.pop();
             }
             else {
-                nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst().getName());
+                nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst());
                 if (nextListRule == null) {
                     //throw error
                 } else if (nextListRule.get(0).equals("ε")) {

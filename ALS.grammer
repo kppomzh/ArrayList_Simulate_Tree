@@ -12,8 +12,10 @@ CREATESQL:create CREATEQUERY
 CREATEQUERY:table Table_all_Name ( List_Define List_Defines )
 CREATEQUERY:tablespace TABLESPACENAME
 List_Define:LISTNAME Quantifier_TYPE List_Define_Length
-List_Define_Length:( INTEGER )
+List_Define_Length:( INTEGER List_Define_Lengths )
 List_Define_Length:ε
+List_Define_Lengths:, INTEGER
+List_Define_Lengths:ε
 List_Defines:, List_Define List_Defines
 List_Defines:ε
 
@@ -147,78 +149,3 @@ Math_Function:max
 Math_Function:sum
 Math_Function:avg
 
-string:
-double:
-int:
-STRING:
-DOUBLE:
-INTERGER:
-NormalTAG:
-
-create:
-drop:
-insert:
-delete:
-update:
-select:
-alter:
-commit:
-
-from:
-where:
-union:
-set:
-into:
-order:
-group:
-by:
-asc:
-desc:
-add:
-del:
-column:
-values:
-
-and:
-or:
-in:
-
-table:
-tablespace:
-
-is:
-not:
-null:
-
-abs:
-ln:
-pow:
-sin:
-cos:
-tan:
-sqrt:
-round:
-
-+:
--:
-*:
-/:
-~:
-!:
-%:
-^:
-(:
-):
-=:
-==:
-:=:
->:
-<:
->=:
-<=:
-!=:
-&:
-|:
-':
-,:
-.:

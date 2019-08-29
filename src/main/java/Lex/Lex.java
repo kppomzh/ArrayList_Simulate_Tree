@@ -20,6 +20,11 @@ public class Lex {
     private String thisSQL;
     private int line = 0, list = 0,nowindex=0;
     private boolean annotationNull=false;
+    private IdentifierSetter tokenSet;
+
+    public Lex(IdentifierSetter set){
+        tokenSet=set;
+    }
 
     public String[] Pretreatment(String allSQLinOne){
         String[] allSQLs=allSQLinOne.split(";");
@@ -131,7 +136,7 @@ public class Lex {
             throw new TerminatorNotFoundException(line,list,'\"');
 
         nowindex=loop;
-        if(IdentifierSetter.isIdentifier(sb.toString())) {
+        if(tokenSet.isIdentifier(sb.toString())) {
             return new Word(sb.toString(), line, list);
         }
         else{
@@ -237,9 +242,9 @@ public class Lex {
                 case 5://扫描到括号
                 case 6://用于分割标识符的句号
                     //如果组成的符号字符串不在关键字符号表里，那么就会以当前的StringBuilder返回
-                    if(IdentifierSetter.isMark(sb.toString()+thisSQL.charAt(loop))) {
+                    if(tokenSet.isMark(sb.toString()+thisSQL.charAt(loop))) {
                         sb.append(thisSQL.charAt(loop));
-                        if(IdentifierSetter.isAnnotation(sb.toString())){
+                        if(tokenSet.isAnnotation(sb.toString())){
                             nowindex=loop+1;
                             AnnotationMaker(sb);
                             nowStatus=-3;

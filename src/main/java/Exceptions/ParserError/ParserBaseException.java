@@ -2,15 +2,15 @@ package Exceptions.ParserError;
 
 import bean.Word;
 
-public class ParserBaseException extends Exception {
+public abstract class ParserBaseException extends Exception {
     protected StringBuilder errMessage;
-    protected ParserBaseException(Word word){
+    protected ParserBaseException(String word,int line,int list){
         errMessage=new StringBuilder();
-        errMessage.append(word.getSubstance());
+        errMessage.append(word);
         errMessage.append(" at line:");
-        errMessage.append(word.getStayline());
+        errMessage.append(line);
         errMessage.append(",list:");
-        errMessage.append(word.getStaylist());
+        errMessage.append(list);
         errMessage.append("  ");
     }
     

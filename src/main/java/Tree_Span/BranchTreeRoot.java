@@ -1,13 +1,20 @@
 package Tree_Span;
 
-public class BranchTreeRoot extends BranchTreeBase {
-    private String SQLMainType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
-    public String getSQLType() {
-        return SQLMainType;
-    }
+/**
+ * 生成树
+ * 通过语法分析之后的数据存放入基本的生成树当中
+ * 执行计划生成的时候依次向下按照深度遍历搜索所有信息
+ */
+public abstract class BranchTreeRoot {
+    private String branchName;
 
-    public BranchTreeBase getSQLTypeTree() {
-        return super.getNextChild();
-    }
+    protected abstract void addChild(BranchTreeRoot child);
+
+    protected abstract Collection<?> getChilds();
+
+    protected abstract void SetAttribute(String attr,String o);
 }

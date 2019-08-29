@@ -1,9 +1,11 @@
 package bean.Parser;
 
-import bean.Parser.Tree_Rules.Rule_LinkList;
+import Exceptions.GrammerMakerError.LeftCommonFactorConflict;
+import Exceptions.ParserError.Impl.NullGrammerBranch;
+import Exceptions.ParserError.ParserBaseException;
+import bean.Word;
 
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * 预测分析表实体类
@@ -11,32 +13,48 @@ import java.util.LinkedList;
  * TerminalMap负责将所有终结符映射到driverTable[x][]上
  */
 public class PredictiveAnalysisTable {
-    private Rule_LinkList[][] driverTable;
+    private Rule[][] driverTable;
     private HashMap<String,Integer> nonTerminalMap;
     private HashMap<String,Integer> TerminalMap;
 
-    public PredictiveAnalysisTable(String[] TerminalWords,String[] nonTerminalWords){
-        driverTable=new Rule_LinkList[TerminalWords.length][nonTerminalWords.length];
+    public PredictiveAnalysisTable(Collection<String> TerminalWords, Collection<String> nonTerminalWords){
+        driverTable=new Rule[TerminalWords.size()+1][nonTerminalWords.size()];
         TerminalMap=new HashMap<>();
         nonTerminalMap=new HashMap<>();
+        int i = 0;
 
-        for (int i = 0; i < TerminalWords.length; i++) {
-            TerminalMap.put(TerminalWords[i],i);
+        Iterator<String> twi=TerminalWords.iterator();
+        for (i = 0; twi.hasNext(); i++) {
+            TerminalMap.put(twi.next(),i);
         }
-        for (int i = 0; i < nonTerminalWords.length; i++) {
-            nonTerminalMap.put(nonTerminalWords[i],i);
+        TerminalMap.put("#",i);
+        Iterator<String> ntwi=nonTerminalWords.iterator();
+        for (i = 0; ntwi.hasNext(); i++) {
+            nonTerminalMap.put(ntwi.next(),i);
         }
     }
 
-    public LinkedList<String> getNextRule(String nonTerminal, String Terminal){
-        Rule_LinkList toreturn=driverTable[TerminalMap.get(Terminal)][nonTerminalMap.get(nonTerminal)];
+    public void setDriverTable(String terminal,String nonterminal,Rule r) throws LeftCommonFactorConflict {
+//        if(!(TerminalMap.containsKey(terminal)&&nonTerminalMap.containsKey(nonterminal))){
+//            先假定所有的非终结符和终结符都在map里
+//        }
+        if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)]==null) {
+            driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)] = r;
+        }
+        else{
+            throw new LeftCommonFactorConflict(terminal,nonterminal,r,
+                    driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)]);
+        }
+    }
+
+    public LinkedList<String> getNextRule(String nonTerminal, Word Terminal) throws ParserBaseException {
+        Rule toreturn=driverTable[TerminalMap.get(Terminal.getName())][nonTerminalMap.get(nonTerminal)];
 
         if(toreturn!=null){
             return toreturn.getRules();
         }
         else{
-            //throw error
-            return null;
+            throw new NullGrammerBranch(Terminal);
         }
     }
 }
