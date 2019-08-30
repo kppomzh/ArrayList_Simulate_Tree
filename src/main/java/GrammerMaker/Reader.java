@@ -4,6 +4,8 @@ import Exceptions.GrammerMakerError.GrammerUndefined;
 import Exceptions.GrammerMakerError.TokenisRepeat;
 import Lex.Lex;
 import Parser.Parser;
+import bean.GrammerMaker.RuleInfo;
+import bean.GrammerMaker.RuleTree;
 import bean.KVEntryImpl;
 import bean.Lex.IdentifierSetter;
 import bean.Parser.PredictiveAnalysisTable;
@@ -12,13 +14,29 @@ import bean.Parser.Rule;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Reader类是低配Antlr的总控分析程序，里面包含了词法部分和语法部分
+ * 但是与Antlr不同的是，词法识别并没有那么智能。因为不支持正则表达式的分析。
+ * Reader类会根据grammer文件生成对应的文法分析类
+ */
 public class Reader {
     private static final String[] FixLoadGrammer={"annotation","keyword","mark"};
     private int tokenNum=0;
     private String basePath;
     private File grammer;
     private List<File> grammerFileList;
-    private List<KVEntryImpl<String, Rule>> ruleList;
+    /**
+     * 记录文法符号的信息，包括产生式右部，first集，follow集
+     */
+    private HashMap<String, RuleInfo> ruleMap;
+    /**
+     * ruleTreeMap用于指示文法符号之间的上下级关系
+     */
+    private HashMap<String, RuleTree> ruleTreeMap;
+    /**
+     * ruleNameSet记录非终结符存在性
+     * keyNameSet记录终结符存在性
+     */
     private Set<String> ruleNameSet,keyNameSet;
 
     public Reader(String basePath) throws IOException {
@@ -38,9 +56,16 @@ public class Reader {
             grammerFileList.add(new File(basePath+s+".grammer"));
         }
 
-        ruleList = new ArrayList<>();
+        ruleTreeMap=new HashMap<>();
+        ruleMap = new HashMap<>();
     }
 
+    /**
+     * 生成Lex
+     * @return
+     * @throws IOException
+     * @throws TokenisRepeat
+     */
     public Lex LexGenerate() throws IOException, TokenisRepeat {
         String[] anno = new String[0],key = new String[0],mark = new String[0];
 
@@ -69,43 +94,67 @@ public class Reader {
         return new Lex(new IdentifierSetter(anno,mark,key));
     }
 
+    /**
+     * 生成Parser
+     * @return
+     * @throws GrammerUndefined
+     * @throws IOException
+     */
     public Parser ParserGenerate() throws GrammerUndefined, IOException {
         for(File file:grammerFileList){
+            //遍历grammer.list中记录的文件
             List<KVEntryImpl<String,String>> prop=new LinkedList<>();
             FileReader fr=new FileReader(file);
             BufferedReader br=new BufferedReader(fr);
 
             while(br.ready()){
+                //将其中每个文件按行读取
                 String rule=br.readLine().strip();
+                //每行用冒号分割，得到第一步的整体产生式
                 String[] Production=rule.split(":");
                 if(Production.length!=2){
                     throw new GrammerUndefined("该文法的产生式格式不正确~！");
                 }
                 prop.add(new KVEntryImpl<>(Production[0].strip(),Production[1].strip()));
             }
+            //传递到makeRule中
             makeRule(prop);
         }
+
+        countFirstCollection("S");
+        countFollowCollection();
+
         return new Parser(makeMap());
     }
 
+    /**
+     * 根据非终结符信息构造分析表
+     * @return
+     */
     public PredictiveAnalysisTable makeMap() {
         PredictiveAnalysisTable ptable=new PredictiveAnalysisTable(keyNameSet,ruleNameSet);
-        for(KVEntryImpl<String,Rule> kv:ruleList){
-            String nonterminal=kv.getKey();
-            Rule r=kv.getValue();
+        for(String rulename: ruleMap.keySet()){
+            String nonterminal=rulename;
+            RuleInfo ri=ruleMap.get(nonterminal);
 
         }
 
         return ptable;
     }
 
+    /**
+     * 统计文法符号之间的上下级关系 RuleTreeMap
+     * 统计每个非终结符对应的产生式
+     * @param prop
+     * @throws GrammerUndefined
+     */
     private void makeRule(List<KVEntryImpl<String,String>> prop) throws GrammerUndefined {
         for(KVEntryImpl<String,String> e:prop){
             ruleNameSet.add(e.getKey());
         }
 
         for(KVEntryImpl<String,String> e:prop){
-            Rule r=new Rule(e.getKey());
+            Rule r=new Rule();
             String[] rules=e.getValue().split(" ");
 
             for(String singalrule:rules){
@@ -115,7 +164,37 @@ public class Reader {
             }
 
             r.setRules(new LinkedList<>(List.of(rules)));
-            ruleList.add(new KVEntryImpl<>(e.getKey(),r));
+            if(ruleTreeMap.containsKey(e.getKey())){
+                ruleTreeMap.get(e.getKey()).addFirstSet(rules[0]);
+                ruleMap.get(e.getKey()).addRule(r);
+            }
+            else{
+                RuleTree tree=new RuleTree();
+                tree.addFirstSet(rules[0]);
+                ruleTreeMap.put(e.getKey(),tree);
+
+                RuleInfo ri=new RuleInfo();
+                ri.addRule(r);
+                ruleMap.put(e.getKey(),ri);
+            }
         }
+    }
+
+    /**
+     * 计算first集
+     */
+    private void countFirstCollection(String s){
+        Set<String> set=ruleTreeMap.get(s).getFirstSet();
+        for(String child:set){
+            if(keyNameSet.contains(s)){
+
+            }
+        }
+    }
+
+    /**
+     * 计算follow集
+     */
+    private void countFollowCollection(){
     }
 }
