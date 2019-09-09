@@ -14,4 +14,9 @@ public class S extends BranchTreeRoot {
     public Collection<?> getChilds() {
         return null;
     }
+
+    @Override
+    protected void SetAttribute(String attr, String o) {
+
+    }
 }

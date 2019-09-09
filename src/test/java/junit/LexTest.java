@@ -34,7 +34,7 @@ public class LexTest {
 
         try {
             for(String s:sqls) {
-                Lex lex=new Lex();
+                Lex lex=null;//new Lex();
                 List<Word> list = lex.getWords(s);
 
                 for (Word w : list) {

@@ -128,6 +128,13 @@ public class Reader {
     }
 
     /**
+     * 生成位于Tree_Span.Impl包下的AST数据结构
+     */
+    public void ASTGenerate(){
+
+    }
+
+    /**
      * 根据非终结符信息构造分析表
      * @return
      */

@@ -17,7 +17,7 @@ public class List_Define extends BranchTreeRoot {
     }
 
     @Override
-    protected Collection<?> getChilds() {
+    protected Collection<String> getChilds() {
         return null;
     }
 

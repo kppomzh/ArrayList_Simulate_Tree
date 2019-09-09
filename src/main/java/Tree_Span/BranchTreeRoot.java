@@ -14,7 +14,15 @@ public abstract class BranchTreeRoot {
 
     protected abstract void addChild(BranchTreeRoot child);
 
-    protected abstract Collection<?> getChilds();
+    protected abstract Collection<? extends BranchTreeRoot> getChilds();
 
     protected abstract void SetAttribute(String attr,String o);
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
+    }
 }

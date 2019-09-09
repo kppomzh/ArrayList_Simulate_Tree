@@ -16,7 +16,8 @@ public class CREATESQL extends BranchTreeRoot {
     }
 
     @Override
-    public void SetAttribute(String attr, Object o) {
+    protected void SetAttribute(String attr, String o) {
 
     }
+
 }
