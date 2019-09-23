@@ -5,6 +5,7 @@ import Exceptions.ParserError.Impl.NullGrammerBranch;
 import Exceptions.ParserError.ParserBaseException;
 import bean.Word;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -12,7 +13,7 @@ import java.util.*;
  * nonTerminalMap负责将所有非终结符映射到driverTable[][y]上
  * TerminalMap负责将所有终结符映射到driverTable[x][]上
  */
-public class PredictiveAnalysisTable {
+public class PredictiveAnalysisTable implements Serializable {
     private Rule[][] driverTable;
     private HashMap<String,Integer> nonTerminalMap;
     private HashMap<String,Integer> TerminalMap;

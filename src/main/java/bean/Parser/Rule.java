@@ -17,9 +17,9 @@ public class Rule implements Serializable {
 //        this.RuleName=ruleName;
     }
 
-//    public String getRuleName() {
-//        return RuleName;
-//    }
+    public String getFirstMark() {
+        return rules.get(0);
+    }
 
     public LinkedList<String> getRules() {
         return rules;

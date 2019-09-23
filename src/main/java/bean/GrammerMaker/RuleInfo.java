@@ -2,16 +2,14 @@ package bean.GrammerMaker;
 
 import bean.Parser.Rule;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class RuleInfo {
 //    private String rulename;
 
     private Set<String> firstSet,followSet;
     private List<Rule> rules;
+    private Iterator<Rule> rulesIterator;
 
     public RuleInfo(){
         firstSet=new HashSet<>();
@@ -38,11 +36,21 @@ public class RuleInfo {
     public void addFirstSet(Set<String> Set) {
         this.firstSet.addAll(Set);
     }
+    public void addFirstSet(String firstMark) {
+        this.firstSet.add(firstMark);
+    }
+
+    public List<Rule> getRules(){
+        return this.rules;
+    }
 
     public boolean hasNext(){
-        return !rules.isEmpty();
+        if(rulesIterator==null)
+            rulesIterator=rules.iterator();
+        return rulesIterator.hasNext();
     }
     public Rule getNextRule(){
-        return rules.remove(0);
+        return rulesIterator.next();
     }
+
 }

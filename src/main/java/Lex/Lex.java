@@ -7,6 +7,7 @@ import Exceptions.LexError.LexBaseException;
 import bean.Lex.IdentifierSetter;
 import bean.Word;
 
+import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
  * 词法分析器
  * 基于有限自动机，状态用函数表示
  */
-public class Lex {
+public class Lex implements Serializable {
     private int nowStatus = 0;
     private String thisSQL;
     private int line = 0, list = 0,nowindex=0;

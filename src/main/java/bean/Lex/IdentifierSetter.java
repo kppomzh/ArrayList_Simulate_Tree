@@ -1,27 +1,9 @@
 package bean.Lex;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class IdentifierSetter {
-//    private String[] identifierArray={"create","drop","select","insert","update","delete",
-//            "table","tablespace","from","where","union","set","into","values",
-//            "int","double","string",//用于标识符
-//            "Integer","Double","String",//用于标记常量
-//            "NormalTAG",//普通对象名称，可能是变量、对象名、包函数名等。
-//            "alter","add","del","column",
-//            "and","or","in",
-//            "null","is","not",
-//            "sqrt","abs","pow",
-//            "order","group","by","desc","asc",
-//            "commit"
-//            ,"show","cpu","dbtree","memory" //软件运行情况以及表目录结构
-//    };
-//    private String[] markArray={"+","-","*","/","^","%",
-//            "=",":=","==",">",">=","<","<=","!=",".",
-//            ",","(",")","\'","&","|"
-//    };
-//    private String[] annotationArray={"--","/*","*/"}; //注释符号
-
+public class IdentifierSetter implements Serializable {
     private ArrayList<String> identifier;
     private ArrayList<String> mark;
     private ArrayList<String> annotation;

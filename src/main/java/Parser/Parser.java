@@ -6,12 +6,13 @@ import Tree_Span.Impl.S;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Word;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
 /**
  * 语法分析总控程序
  */
-public class Parser {
+public class Parser implements Serializable {
     private PredictiveAnalysisTable pat;
     private LinkedList<String> analysisStack;
 
