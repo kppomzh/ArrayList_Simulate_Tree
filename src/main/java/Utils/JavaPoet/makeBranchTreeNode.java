@@ -16,6 +16,7 @@ public class makeBranchTreeNode {
     private Set<String> nonTerminalMethodSet;
     private MethodSpec.Builder[] OverrideFunctions;//继承方法
     private MethodSpec.Builder Constructor;//构造方法
+    private List<File> files;
 
     public makeBranchTreeNode(String NodeName) throws ClassNotFoundException {
         className=NodeName;
@@ -25,6 +26,7 @@ public class makeBranchTreeNode {
         nonTerminalMethodSet=new HashSet<>();
         OverrideFunctions=makeExtendMethodBuilder();
         Constructor=MethodSpec.constructorBuilder();
+        files=new ArrayList<>();
     }
 
     public void buildFile() throws IOException {
@@ -36,7 +38,11 @@ public class makeBranchTreeNode {
 
         BranchTreeNode=JavaFile.builder(packagePath,ts.build()).build();
         BranchTreeNode.writeTo(new File("src/main/java"));
+
+        BranchTreeNode.toJavaFileObject().openOutputStream()
     }
+
+
 
     /**
      * @param nodes
@@ -44,9 +50,9 @@ public class makeBranchTreeNode {
      * 这样应该只有显式的右递归才会清晰的记录下来
      * 具体效果需要在运行中体现，目前不太好推断
      */
-    public void AnalysisClass(List<childNodeProperty> nodes) {
-        for (int i = 0; i < nodes.size(); i++) {
-            childNodeProperty np=nodes.get(i);
+    public void AnalysisClass(childNodeProperty... nodes) {
+        for (int i = 0; i < nodes.length; i++) {
+            childNodeProperty np=nodes[i];
             if(np.isTerminal()){
                 regAttribute(np.getNodeName());
             }
