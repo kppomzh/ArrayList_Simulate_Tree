@@ -11,7 +11,7 @@ public class CREATESQL extends BranchTreeRoot {
     }
 
     @Override
-    public Collection<?> getChilds() {
+    public Collection<? extends BranchTreeRoot> getChilds() {
         return null;
     }
 

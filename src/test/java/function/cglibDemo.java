@@ -17,7 +17,7 @@ public class cglibDemo {
             @Override
             public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
                 System.out.println("begin");
-                Object invoke = methodProxy.invoke(new  BranchTreeRoot(){
+                Object invoke = methodProxy.invoke(new BranchTreeRoot(){
                     private String msg="aabb";
                     public String getMsg(){
                         return msg;
@@ -28,7 +28,7 @@ public class cglibDemo {
                     }
 
                     @Override
-                    protected Collection<?> getChilds() {
+                    protected Collection<? extends BranchTreeRoot> getChilds() {
                         return null;
                     }
 

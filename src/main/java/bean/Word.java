@@ -59,7 +59,7 @@ public class Word extends BranchTreeRoot {
     }
 
     @Override
-    protected Collection<?> getChilds() {
+    protected Collection<? extends BranchTreeRoot> getChilds() {
         return null;
     }
 

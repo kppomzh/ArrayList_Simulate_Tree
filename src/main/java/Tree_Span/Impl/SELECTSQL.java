@@ -11,7 +11,7 @@ public class SELECTSQL extends BranchTreeRoot {
     }
 
     @Override
-    protected Collection<?> getChilds() {
+    protected Collection<? extends BranchTreeRoot> getChilds() {
         return null;
     }
 
