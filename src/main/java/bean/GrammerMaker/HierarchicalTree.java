@@ -25,7 +25,8 @@ import java.util.*;
  * 节点为子树根节点，将其下所有节点再遍历一次。当然当前记录的临时根节点及其下的单继承子节点是不用被再次遍历的。
  *
  * 当遇到一条有向通路上有多个环的情形时，如果两个环没有重叠部分，应该分开计算。如果存在重叠部分，则只需要将两个环层级最低的节点作为子树根节点，
- * 从层级最高的节点开始往下计算即可。
+ * 从层级最高的节点开始往下计算即可。（可达性分析与图的同构）
+ * 判断环的存在需要用到邻接表adjacencyList，出于节约空间的考虑，邻接表一般只记录节点的子节点，当出现环的征兆的时候再计算子节点。
  *
  * ps.由于懒惰的原因，所以再次从Java数据结构里把HashMap搬出来应付了账。
  * @param <K>
@@ -39,6 +40,7 @@ public class HierarchicalTree<K, V extends Collection> {
     private int mainLevel;
     private List<Set<K>> levelNodes;
     private Class<V> valueType;
+    private HashMap<K,Set<K>> adjacencyList;
 
     public HierarchicalTree(K key,Class<V> valueType) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         root = new Node<>(key);
@@ -52,6 +54,7 @@ public class HierarchicalTree<K, V extends Collection> {
         table.put(key, this.valueType.getConstructor().newInstance());
         tree=new HashMap<>();
         tree.put(key,root);
+        adjacencyList=new HashMap<>();
     }
 
     public List<K> getRoot() {
@@ -85,10 +88,13 @@ public class HierarchicalTree<K, V extends Collection> {
 
         if(table.containsKey(key)){
             int childLevel=tree.get(key).getLevel();
+            //此时就需要判断环的存在，更新邻接表
             if(fatherLevel>=childLevel) {
                 tree.get(key).setLevel(fatherLevel + 1);
                 levelNodes.get(childLevel).remove(key);
                 levelNodes.get(fatherLevel + 1).add(key);
+
+                boolean isFind=makeAdjacencyList(key,fatherNodeKey,fatherLevel);
             }
         }
         else {
@@ -99,8 +105,10 @@ public class HierarchicalTree<K, V extends Collection> {
             levelNodes.get(fatherLevel+1).add(key);
 
             tree.put(key,newNode);
+            adjacencyList.put(key,new HashSet<>());
         }
         tree.get(fatherNodeKey).addChildNode(key);
+        adjacencyList.get(fatherLevel).add(key);
     }
 
     public void addValue(K key,V value){
@@ -123,7 +131,7 @@ public class HierarchicalTree<K, V extends Collection> {
         Node(K key) {
             this.level = 0;
             this.key = key;
-            this.children = new LinkedList<>();
+            this.children = new ArrayList<>();
         }
 
         public void setLevel(int level) {
@@ -153,5 +161,15 @@ public class HierarchicalTree<K, V extends Collection> {
             }
             return false;
         }
+    }
+
+    /**
+     * @param father
+     * @param tofind 如果father的子树序列中存在tofind，返回true
+     * @param stopLevel 表示tofind的层级，当遍历完该层级的时候则停止查找
+     * @return
+     */
+    private boolean makeAdjacencyList(K father,K tofind,int stopLevel) {
+
     }
 }
