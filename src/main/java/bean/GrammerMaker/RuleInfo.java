@@ -10,15 +10,19 @@ public class RuleInfo {
     private Set<String> firstSet,followSet;
     private List<Rule> rules;
     private Iterator<Rule> rulesIterator;
+    private boolean giveFollow;
 
     public RuleInfo(){
         firstSet=new HashSet<>();
         followSet=new HashSet<>();
         rules=new LinkedList<>();
+        giveFollow=false;
     }
 
     public void addRule(Rule rule){
         rules.add(rule);
+        if(rule.getFirstMark().equals("ε"))
+            giveFollow=true;
     }
 
     public Set<String> getFollowSet() {
@@ -27,6 +31,10 @@ public class RuleInfo {
 
     public void addFollowSet(Set<String> Set) {
         this.followSet.addAll(Set);
+    }
+
+    public void addTerminaltoFollowSet(String Terminal) {
+        this.followSet.add(Terminal);
     }
 
     public Set<String> getFirstSet() {
@@ -53,4 +61,7 @@ public class RuleInfo {
         return rulesIterator.next();
     }
 
+    public boolean isGiveFollow() {
+        return giveFollow;
+    }
 }

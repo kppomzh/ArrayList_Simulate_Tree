@@ -33,17 +33,16 @@ import java.util.*;
  * @param <V> 是Collection的子类。本类的目的就是存储类似于key的属性信息，所以value必须是Collection的子类。同时这样设计也方便化简一些初
  *           始化操作。
  */
-public class HierarchicalTree<K, V extends Collection> {
-    private Node<K> root;
-    private HashMap<K,V> table;
-    private HashMap<K,Node<K>> tree;
+public class HierarchicalTree<K, V extends Collection<D>,D> {
+    private K root;
+    private Map<K,V> table;
+    private Map<K,Node<K>> tree;
     private int mainLevel;
     private List<Set<K>> levelNodes;
     private Class<V> valueType;
-    private HashMap<K,Set<K>> adjacencyList;
 
     public HierarchicalTree(K key,Class<V> valueType) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        root = new Node<>(key);
+        root = key;
         mainLevel=0;
         levelNodes=new ArrayList<>();
         HashSet<K> rootLevel=new HashSet<>();
@@ -53,12 +52,11 @@ public class HierarchicalTree<K, V extends Collection> {
         table=new HashMap<>();
         table.put(key, this.valueType.getConstructor().newInstance());
         tree=new HashMap<>();
-        tree.put(key,root);
-        adjacencyList=new HashMap<>();
+        tree.put(key,new Node<>(key));
     }
 
-    public List<K> getRoot() {
-        return root.getChildren();
+    public K getRoot() {
+        return root;
     }
 
     public int getMainLevel() {
@@ -75,7 +73,7 @@ public class HierarchicalTree<K, V extends Collection> {
 
     public void put(K key,K fatherNodeKey) throws NullKeyException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         //严格禁止将root节点作为子节点
-        if(key.equals(root.getKey()))
+        if(key.equals(root))
             throw new NullKeyException();
         if(!tree.containsKey(fatherNodeKey))
             throw new NullKeyException();
@@ -88,13 +86,10 @@ public class HierarchicalTree<K, V extends Collection> {
 
         if(table.containsKey(key)){
             int childLevel=tree.get(key).getLevel();
-            //此时就需要判断环的存在，更新邻接表
             if(fatherLevel>=childLevel) {
                 tree.get(key).setLevel(fatherLevel + 1);
-                levelNodes.get(childLevel).remove(key);
+//                levelNodes.get(childLevel).remove(key);
                 levelNodes.get(fatherLevel + 1).add(key);
-
-                boolean isFind=makeAdjacencyList(key,fatherNodeKey,fatherLevel);
             }
         }
         else {
@@ -105,33 +100,35 @@ public class HierarchicalTree<K, V extends Collection> {
             levelNodes.get(fatherLevel+1).add(key);
 
             tree.put(key,newNode);
-            adjacencyList.put(key,new HashSet<>());
         }
         tree.get(fatherNodeKey).addChildNode(key);
-        adjacencyList.get(fatherLevel).add(key);
     }
 
     public void addValue(K key,V value){
         get(key).addAll(value);
     }
 
+    public void addValue(K key,D value){
+        get(key).add(value);
+    }
+
     public V get(K key){
         return table.get(key);
     }
 
-    public List<K> getChildNodes(K fatherKey){
+    public Set<K> getChildNodes(K fatherKey){
         return tree.get(fatherKey).getChildren();
     }
 
     private class Node<K> {
         int level;
         final K key;
-        List<K> children;
+        Set<K> children;
 
         Node(K key) {
             this.level = 0;
             this.key = key;
-            this.children = new ArrayList<>();
+            this.children = new HashSet<>();
         }
 
         public void setLevel(int level) {
@@ -149,7 +146,7 @@ public class HierarchicalTree<K, V extends Collection> {
             children.add(node);
         }
 
-        public List<K> getChildren() { return children; }
+        public Set<K> getChildren() { return children; }
 
         public final boolean equals(Object o) {
             if (o == this)
@@ -161,15 +158,5 @@ public class HierarchicalTree<K, V extends Collection> {
             }
             return false;
         }
-    }
-
-    /**
-     * @param father
-     * @param tofind 如果father的子树序列中存在tofind，返回true
-     * @param stopLevel 表示tofind的层级，当遍历完该层级的时候则停止查找
-     * @return
-     */
-    private boolean makeAdjacencyList(K father,K tofind,int stopLevel) {
-
     }
 }
