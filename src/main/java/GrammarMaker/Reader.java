@@ -1,5 +1,6 @@
 package GrammarMaker;
 
+import Exceptions.GrammerMakerError.FollowDebugException;
 import Exceptions.GrammerMakerError.GrammerUndefined;
 import Exceptions.GrammerMakerError.LeftCommonFactorConflict;
 import Exceptions.GrammerMakerError.TokenisRepeat;
@@ -31,11 +32,7 @@ public class Reader {
     /**
      * 记录文法符号的信息，包括产生式右部，first集，follow集
      */
-    private HashMap<String, RuleInfo> ruleMap;
-    /**
-     * ruleTreeMap用于指示文法符号之间的上下级关系
-     */
-//    private HashMap<String, RuleTree> ruleTreeMap;
+    private Map<String, RuleInfo> ruleMap;
     /**
      * ruleNameSet记录非终结符存在性
      * keyNameSet记录终结符存在性
@@ -102,7 +99,7 @@ public class Reader {
      * @throws GrammerUndefined
      * @throws IOException
      */
-    public Parser ParserGenerate() throws GrammerUndefined, IOException, LeftCommonFactorConflict {
+    public Parser ParserGenerate() throws GrammerUndefined, IOException, LeftCommonFactorConflict, FollowDebugException {
         for(File file:grammerFileList){
             //遍历grammer.list中记录的文件
             List<KVEntryImpl<String,String>> prop=new LinkedList<>();
@@ -237,91 +234,8 @@ public class Reader {
     /**
      * 计算follow集
      */
-    private void countFollowCollection() {
-        //存储所有first&&ε∈first?follow:null->follow
-        ListMatrix<String> lm = new ListMatrix<>();
-        //记录在文法产生式尾部和产生式左部匹配的非终结符
-        //存储所有follow->follow
-        Map<String,Set<String>> sameNonTerminal=new HashMap<>();
-        Set<String> nonDependents=new HashSet<>(this.ruleNameSet);
-        HashMap<String,Set<String>> nodeDependents=new HashMap<>();
-        for(String s:nonDependents){
-            nodeDependents.put(s,new HashSet<>());
-        }
-
-        for(Map.Entry<String,RuleInfo> e:ruleMap.entrySet()){
-            RuleInfo ri=e.getValue();
-            for(Rule rule:ri.getRules()){
-                int i=0;
-                List<String> marks=rule.getRules();
-
-                for(;i<marks.size()-1;i++){
-                    if(ruleNameSet.contains(marks.get(i))){
-                        if(marks.get(i).equals(marks.get(i+1))){
-                            //不做任何事情，因为两个符号一样
-                        }
-                        else if(ruleNameSet.contains(marks.get(i+1))){
-                            lm.addConnect(marks.get(i+1),marks.get(i));
-                            nonDependents.remove(marks.get(i));
-                            nodeDependents.get(marks.get(i)).add(marks.get(i+1));
-                        }
-                        else{
-                            ruleMap.get(marks.get(i)).addTerminaltoFollowSet(marks.get(i+1));
-                        }
-                    }
-                }
-                //避免右递归下的无效传输
-                if(ruleNameSet.contains(marks.get(i))&&!marks.get(rule.length()-1).equals(e.getKey())){
-                    if(!sameNonTerminal.containsKey(e.getKey()))
-                        sameNonTerminal.put(e.getKey(),new HashSet<>());
-                    sameNonTerminal.get(e.getKey()).add(rule.getRules().get(i));
-                    nonDependents.remove(rule.getRules().get(i));
-                    nodeDependents.get(rule.getRules().get(i)).add(e.getKey());
-                }
-            }
-        }
-
-        for(String s:nonDependents){
-            //首先从有依赖的节点列表中移除已经没有依赖的节点
-            nodeDependents.remove(s);
-            //如果这些节点出现在sameNonTerminal中，那么现在已经可以放心的将这个节点的follow集传递给sameNonTerminal中s对应的所有value
-            if(sameNonTerminal.containsKey(s)){
-                for(String chrule:sameNonTerminal.get(s)){
-                    ruleMap.get(chrule).addFollowSet(ruleMap.get(s).getFollowSet());
-                }
-                sameNonTerminal.remove(s);
-            }
-            //如果从s到任意一个节点间存在向前的传递first&follow集的关系
-            for(String chrule:ruleNameSet){
-                if(lm.isConnect(s,chrule)){
-                    //先添加first集到chrule的follow集
-                    ruleMap.get(chrule).addFollowSet(ruleMap.get(s).getFirstSet());
-
-                    //s的first集中是否有ε
-                    if(ruleMap.get(s).isGiveFollow()){
-                        //添加follow集到chrule的follow集
-                        ruleMap.get(chrule).addFollowSet(ruleMap.get(s).getFollowSet());
-                    }
-                    //从chrule的依赖列表中拿走当前s
-                    nodeDependents.get(chrule).remove(s);
-                    if(nodeDependents.get(chrule).isEmpty()){
-                        //如果依赖列表已经空了，那说明现在chrule的两个集合是稳定的，可以对外提供服务了
-                        nonDependents.add(chrule);
-                    }
-                }
-            }
-        }
-
-        //处理存在循环依赖的节点
-        for(String s:nodeDependents.keySet()){
-
-        }
-
-        //处理完还有依赖的节点之后，就可以着手清理sameNonTerminal中剩余的follow集依赖
-        for(Map.Entry<String,Set<String>> entry:sameNonTerminal.entrySet()){
-            for(String chrule:entry.getValue()){
-                ruleMap.get(chrule).addFollowSet(ruleMap.get(entry.getKey()).getFollowSet());
-            }
-        }
+    private void countFollowCollection() throws FollowDebugException {
+        FollowCollectionMaker maker=new FollowCollectionMaker(ruleMap,ruleNameSet);
+        ruleMap=maker.countFollowCollection();
     }
 }

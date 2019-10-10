@@ -48,7 +48,7 @@ public class PredictiveAnalysisTable implements Serializable {
         }
     }
 
-    public LinkedList<String> getNextRule(String nonTerminal, Word Terminal) throws ParserBaseException {
+    public List<String> getNextRule(String nonTerminal, Word Terminal) throws ParserBaseException {
         Rule toreturn=driverTable[TerminalMap.get(Terminal.getName())][nonTerminalMap.get(nonTerminal)];
 
         if(toreturn!=null){

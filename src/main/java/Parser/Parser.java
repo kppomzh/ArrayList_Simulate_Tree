@@ -8,6 +8,7 @@ import bean.Word;
 
 import java.io.Serializable;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 语法分析总控程序
@@ -24,7 +25,7 @@ public class Parser implements Serializable {
 
     public BranchTreeRoot Controller(LinkedList<Word> words) throws ParserBaseException {
         BranchTreeRoot grammerTree=new S();
-        LinkedList<String> nextListRule;
+        List<String> nextListRule;
 
         while(!analysisStack.isEmpty()){
             if(words.isEmpty()){
@@ -34,7 +35,7 @@ public class Parser implements Serializable {
                 }else{
                     analysisStack.pop();
                     while(!nextListRule.isEmpty()) {
-                        analysisStack.push(nextListRule.removeLast());
+                        analysisStack.push(nextListRule.remove(nextListRule.size()-1));
                     }
                 }
             }
@@ -51,7 +52,7 @@ public class Parser implements Serializable {
                 } else{
                     analysisStack.pop();
                     while(!nextListRule.isEmpty()) {
-                        analysisStack.push(nextListRule.removeLast());
+                        analysisStack.push(nextListRule.remove(nextListRule.size()-1));
                     }
                 }
             }
