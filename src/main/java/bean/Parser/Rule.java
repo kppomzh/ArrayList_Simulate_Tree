@@ -8,14 +8,16 @@ import java.util.List;
  * 文法表达式在分析程序中对应的实体
  */
 public class Rule implements Serializable {
-    /**
-     * 规则名称
-     */
-//    protected String RuleName;
+    public final static Rule epsilon;
+    static {
+        epsilon=new Rule();
+        epsilon.setRules(List.of("ε"));
+    }
+
     private List<String> rules;
 
     public Rule(){
-//        this.RuleName=ruleName;
+
     }
 
     public String getFirstMark() {

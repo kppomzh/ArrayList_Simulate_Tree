@@ -39,10 +39,7 @@ TABLEQUERY:( SELECTSQL ) NEW_TABLENAME
 
 WHERE_CLAUSE:where BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 WHERE_CLAUSE:ε
-BOOLEAN_EXPRESSION:Quantifier Boolean_Contrast Quantifier BOOLEAN_EXPRESSION_Link
-BOOLEAN_EXPRESSION:List_all_Name Boolean_Contrast Quantifier BOOLEAN_EXPRESSION_Link
-BOOLEAN_EXPRESSION_Link:Boolean_Operation BOOLEAN_EXPRESSION BOOLEAN_EXPRESSION_Link
-BOOLEAN_EXPRESSION_Link:ε
+BOOLEAN_EXPRESSION:Quantifier Boolean_Contrast Quantifier
 BOOLEAN_EXPRESSIONS:, BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:and BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:or BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
@@ -59,7 +56,7 @@ INSERT_LIST_CLAUSE:ε
 LIST_CLAUSE:, LISTNAME LIST_CLAUSE
 LIST_CLAUSE:ε
 VALUE_FROM:values INSERT_VARIABLE_CLAUSE
-# VALUE_FROM:SUBQUERY
+VALUE_FROM:( SUBQUERY )
 INSERT_VARIABLE_CLAUSE:( Math_Expression Quantifiers )
 
 DELETESQL:delete from Table_all_Name WHERE_CLAUSE
@@ -89,14 +86,14 @@ NEW_LISTNAME:ε
 Quantifier:STRING
 Quantifier:DOUBLE
 Quantifier:INTEGER
-# Quantifier:Math_Expression
+Quantifier:Math_Expression
 Quantifiers:, Math_Expression Quantifiers
 Quantifiers:ε
 Quantifier_TYPE:string
 Quantifier_TYPE:double
 Quantifier_TYPE:int
 
-Congruent::=
+#Congruent::=
 Congruent:=
 Boolean_Contrast:=
 Boolean_Contrast:==
@@ -119,10 +116,11 @@ next3_Math_Expression:Math_Function_Expression
 next3_Math_Expression:( Math_Expression )
 next3_Math_Expression:Math_Unary_Expression
 next3_Math_Expression:Quantifier
+Binary_3_Math_Expression:ε
 
 Math_Unary_Expression:Unary_Operator Quantifier
 Math_Function_Expression:Math_Function ( Quantifier_Link )
-# Quantifier_Link:ε
+Quantifier_Link:ε
 Quantifier_Link:Quantifier Quantifiers
 
 Unary_Operator:!
@@ -149,3 +147,4 @@ Math_Function:max
 Math_Function:sum
 Math_Function:avg
 
+MESSAGESQL:show dbtree

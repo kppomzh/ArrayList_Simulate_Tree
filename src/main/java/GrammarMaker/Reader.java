@@ -7,7 +7,6 @@ import Exceptions.GrammerMakerError.TokenisRepeat;
 import Lex.Lex;
 import Parser.Parser;
 import Utils.JavaPoet.makeBranchTreeNode;
-import bean.GrammerMaker.ListMatrix;
 import bean.GrammerMaker.RuleInfo;
 import bean.GrammerMaker.childNodeProperty;
 import bean.KVEntryImpl;
@@ -24,11 +23,10 @@ import java.util.*;
  * Reader类会根据grammer文件生成对应的文法分析类
  */
 public class Reader {
-    private static final String[] FixLoadGrammer={"annotation","keyword","mark"};
+    private static final String[] FixLoadGrammer={"annotation.grammer","keyword.grammer","mark.grammer"};
     private int tokenNum=0;
-    private String basePath;
-    private File grammer;
-    private List<File> grammerFileList;
+    private Collection<String> grammerFileList;
+    private GrammerFileReader grammerReader;
     /**
      * 记录文法符号的信息，包括产生式右部，first集，follow集
      */
@@ -40,22 +38,10 @@ public class Reader {
     private Set<String> ruleNameSet,keyNameSet;
 
     public Reader(String basePath) throws IOException {
-        this.basePath=basePath;
-        grammer=new File(basePath+"grammer.list");
-        grammerFileList=new LinkedList<>();
-        FileReader fr=new FileReader(grammer);
-        BufferedReader br=new BufferedReader(fr);
         ruleNameSet =new HashSet<>();
         keyNameSet=new HashSet<>();
-
-        while(br.ready()){
-            String s=br.readLine();
-            if(s==null||s.length()==0){
-                continue;
-            }
-            grammerFileList.add(new File(basePath+s+".grammer"));
-        }
-
+        grammerReader=new GrammerFileReader(basePath);
+        grammerFileList=grammerReader.getLinesinFile("grammer.list");
         ruleMap = new HashMap<>();
     }
 
@@ -69,21 +55,20 @@ public class Reader {
         String[] anno = new String[0],key = new String[0],mark = new String[0];
 
         for (int i = 0; i < 3; i++) {
-            Properties temp=new Properties();
-            temp.load(new FileInputStream(new File(basePath+FixLoadGrammer[i]+".grammer")));
+            Collection<String> collection=grammerReader.getLinesinFile(FixLoadGrammer[i]);
             switch (FixLoadGrammer[i]){
-                case "annotation":
-                    anno=temp.keySet().toArray(new String[0]);
+                case "annotation.grammer":
+                    anno=collection.toArray(new String[0]);
                     break;
-                case "keyword":
-                    key=temp.keySet().toArray(new String[0]);
+                case "keyword.grammer":
+                    key=collection.toArray(new String[0]);
                     break;
-                case "mark":
-                    mark=temp.keySet().toArray(new String[0]);
+                case "mark.grammer":
+                    mark=collection.toArray(new String[0]);
                     break;
             }
-            tokenNum+=temp.size();
-            keyNameSet.addAll(temp.stringPropertyNames());
+            tokenNum+=collection.size();
+            keyNameSet.addAll(collection);
         }
         if(tokenNum!=keyNameSet.size()){
             throw new TokenisRepeat();
@@ -100,24 +85,10 @@ public class Reader {
      * @throws IOException
      */
     public Parser ParserGenerate() throws GrammerUndefined, IOException, LeftCommonFactorConflict, FollowDebugException {
-        for(File file:grammerFileList){
+        for(String filename:grammerFileList){
             //遍历grammer.list中记录的文件
-            List<KVEntryImpl<String,String>> prop=new LinkedList<>();
-            FileReader fr=new FileReader(file);
-            BufferedReader br=new BufferedReader(fr);
-
-            while(br.ready()){
-                //将其中每个文件按行读取
-                String rule=br.readLine().strip();
-                //每行用冒号分割，得到第一步的整体产生式
-                String[] Production=rule.split(":");
-                if(Production.length!=2){
-                    throw new GrammerUndefined("该文法的产生式格式不正确~！");
-                }
-                prop.add(new KVEntryImpl<>(Production[0].strip(),Production[1].strip()));
-            }
             //传递到makeRule中
-            makeRule(prop);
+            makeRule(grammerReader.makeConbinationGrammer(grammerReader.getLinesinFile(filename+".grammer")));
         }
 
         countFirstCollection("S");
@@ -128,8 +99,10 @@ public class Reader {
 
     /**
      * 生成位于Tree_Span.Impl包下的AST数据结构
+     * @return
      */
-    public void ASTGenerate() throws ClassNotFoundException, IOException {
+    public List<File> ASTGenerate() throws ClassNotFoundException, IOException {
+        List<File> javaFiles=new LinkedList<>();
         for (String nodeName:ruleNameSet){
             //统计非终结符每条产生式的信息
             List<Rule> rules=ruleMap.get(nodeName).getRules();
@@ -138,7 +111,6 @@ public class Reader {
                 prop=new childNodeProperty[]{new childNodeProperty(nodeName)};
                 for(String s:rules.get(0).getRules()){
                     prop[0].setTerminal(false);
-
                 }
             }
             else{
@@ -152,12 +124,15 @@ public class Reader {
             //根据统计信息生成AST类
             makeBranchTreeNode node=new makeBranchTreeNode(nodeName);
             node.AnalysisClass(prop);
-            node.buildFile();
+            javaFiles.add(node.buildFile());
         }
+        return javaFiles;
     }
 
     /**
      * 根据非终结符信息构造分析表
+     * 当遇到终结符是"ε"时，应该遍历当前文法符号的follow集获取terminal，并将nonTerminal → ε这条产生式填入
+     * ptable.setDriverTable(terminal,nonterminal,rule<nonTerminal → ε>)
      * @return
      */
     private PredictiveAnalysisTable makeMap() throws LeftCommonFactorConflict {
@@ -167,8 +142,20 @@ public class Reader {
             RuleInfo ri=ruleMap.get(nonterminal);
 
             for(Rule rule:ri.getRules()){
-                for(String terminal:ruleMap.get(rule.getFirstMark()).getFirstSet()){
-                    ptable.setDriverTable(terminal,nonterminal,rule);
+                Set<String> tempset;
+                if(ruleNameSet.contains(rule.getFirstMark())){
+                    tempset=ruleMap.get(rule.getFirstMark()).getFirstSet();
+                }
+                else if(rule==Rule.epsilon){
+                    tempset=ri.getFollowSet();
+                }
+                else{
+                    ptable.setDriverTable(rule.getFirstMark(), nonterminal, rule);
+                    break;
+                }
+
+                for (String terminal : tempset) {
+                    ptable.setDriverTable(terminal, nonterminal, rule);
                 }
             }
         }
@@ -188,24 +175,27 @@ public class Reader {
         }
 
         for(KVEntryImpl<String,String> e:prop){
-            Rule r=new Rule();
-            String[] rules=e.getValue().split(" ");
-
-            for(String singalrule:rules){
-                if(!(ruleNameSet.contains(singalrule)||keyNameSet.contains(singalrule))){
-                    throw new GrammerUndefined("该文法单位的定义不存在~！");
-                }
-            }
-
-            r.setRules(new ArrayList<>(List.of(rules)));
             //rulemap中未记录则新建RuleInfo类
-            if(ruleMap.containsKey(e.getKey())){
-                ruleMap.get(e.getKey()).addRule(r);
+            if(!ruleMap.containsKey(e.getKey())){
+                ruleMap.put(e.getKey(), new RuleInfo());
             }
-            else{
-                RuleInfo ri=new RuleInfo();
-                ri.addRule(r);
-                ruleMap.put(e.getKey(),ri);
+
+
+            if(e.getValue().equals("ε")){
+                ruleMap.get(e.getKey()).addRule(Rule.epsilon);
+            }
+            else {
+                Rule r = new Rule();
+                String[] rules = e.getValue().split(" ");
+
+                for (String singalrule : rules) {
+                    if (!(ruleNameSet.contains(singalrule) || keyNameSet.contains(singalrule))) {
+                        throw new GrammerUndefined("该文法单位的定义不存在~！");
+                    }
+                }
+
+                r.setRules(new ArrayList<>(List.of(rules)));
+                ruleMap.get(e.getKey()).addRule(r);
             }
         }
     }

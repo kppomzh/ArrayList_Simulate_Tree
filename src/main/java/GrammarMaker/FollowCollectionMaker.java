@@ -17,7 +17,7 @@ public class FollowCollectionMaker {
      * ruleNameSet记录非终结符存在性
      * keyNameSet记录终结符存在性
      */
-    private Set<String> ruleNameSet, keyNameSet;
+    private Set<String> ruleNameSet;
 
 
     //存储所有first&&ε∈first?follow:null->follow
@@ -40,6 +40,7 @@ public class FollowCollectionMaker {
         for (String s : nonDependents) {
             KVEntryImpl<Set<String>, Set<String>> temp = new KVEntryImpl<>(new HashSet<>(), new HashSet<>());
             nodeDependents.put(s, temp);
+            matrix.add(s);
         }
         this.ruleMap = ruleMap;
         this.ruleNameSet = ruleNameSet;

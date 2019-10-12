@@ -12,7 +12,7 @@ import java.util.*;
 public class makeBranchTreeNode {
     private JavaFile BranchTreeNode;
     private TypeSpec.Builder ts;
-    private String packagePath="Tree_Span.Impl",className;
+    private String baseDir="src/main/java",packagePath="Tree_Span.Impl",className;
     private Set<String> nonTerminalMethodSet;
     private MethodSpec.Builder[] OverrideFunctions;//继承方法
     private MethodSpec.Builder Constructor;//构造方法
@@ -29,7 +29,7 @@ public class makeBranchTreeNode {
         files=new ArrayList<>();
     }
 
-    public void buildFile() throws IOException {
+    public File buildFile() throws IOException {
         ts.addMethod(Constructor.build());
 
         for (int i = 0; i < OverrideFunctions.length; i++) {
@@ -37,8 +37,9 @@ public class makeBranchTreeNode {
         }
 
         BranchTreeNode=JavaFile.builder(packagePath,ts.build()).build();
-        BranchTreeNode.writeTo(new File("src/main/java"));
+        BranchTreeNode.writeTo(new File(baseDir));
 
+        return new File(baseDir+'/'+packagePath.replaceAll("\\.","/")+className+".java");
 //        BranchTreeNode.toJavaFileObject().openOutputStream();
     }
 

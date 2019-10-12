@@ -19,12 +19,14 @@ public class PredictiveAnalysisTable implements Serializable {
     private HashMap<String,Integer> TerminalMap;
 
     public PredictiveAnalysisTable(Collection<String> TerminalWords, Collection<String> nonTerminalWords){
-        driverTable=new Rule[TerminalWords.size()+1][nonTerminalWords.size()];
+        Collection<String> usableTerminalWords=new HashSet<>(TerminalWords);
+        usableTerminalWords.remove("ε");
+        driverTable=new Rule[usableTerminalWords.size()+1][nonTerminalWords.size()];
         TerminalMap=new HashMap<>();
         nonTerminalMap=new HashMap<>();
         int i = 0;
 
-        Iterator<String> twi=TerminalWords.iterator();
+        Iterator<String> twi=usableTerminalWords.iterator();
         for (i = 0; twi.hasNext(); i++) {
             TerminalMap.put(twi.next(),i);
         }
@@ -39,6 +41,9 @@ public class PredictiveAnalysisTable implements Serializable {
 //        if(!(TerminalMap.containsKey(terminal)&&nonTerminalMap.containsKey(nonterminal))){
 //            先假定所有的非终结符和终结符都在map里
 //        }
+        if(terminal.equals("ε")){
+
+        }
         if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)]==null) {
             driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)] = r;
         }
