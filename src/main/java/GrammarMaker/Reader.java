@@ -103,24 +103,22 @@ public class Reader {
      */
     public List<File> ASTGenerate() throws ClassNotFoundException, IOException {
         List<File> javaFiles=new LinkedList<>();
-        for (String nodeName:ruleNameSet){
+        //之所以新建一个Set对象的原因是在此过程中需要移除一些被认定为“循环保持符”的非终结符
+        List<String> toMakenonTerminal=new ArrayList<>(ruleNameSet);
+        for (int loop=0;loop<toMakenonTerminal.size();loop++){
+            String nodeName=toMakenonTerminal.get(loop);
             //统计非终结符每条产生式的信息
             List<Rule> rules=ruleMap.get(nodeName).getRules();
             childNodeProperty[] prop;
-            if(rules.size()==1){
-                prop=new childNodeProperty[]{new childNodeProperty(nodeName)};
-                for(String s:rules.get(0).getRules()){
-                    prop[0].setTerminal(false);
+            boolean isLoop=false,hasEpsilon=false;
+
+            prop = new childNodeProperty[rules.size()];
+            for (int i = 0; i < rules.size(); i++) {
+                for (int j = 0; j < rules.get(i).getRules().size(); j++) {
+                    prop[i] = new childNodeProperty(nodeName);
                 }
             }
-            else{
-                prop=new childNodeProperty[rules.size()];
-                for (int i = 0; i < rules.size(); i++) {
-                    for (int j = 0; j < rules.get(i).getRules().size(); j++) {
-                        prop[i]=new childNodeProperty(nodeName);
-                    }
-                }
-            }
+
             //根据统计信息生成AST类
             makeBranchTreeNode node=new makeBranchTreeNode(nodeName);
             node.AnalysisClass(prop);

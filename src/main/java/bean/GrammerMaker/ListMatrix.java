@@ -38,7 +38,10 @@ public class ListMatrix<K> {
     }
 
     public boolean isConnect(K from, K to) {
-        return matrix.get(mapping.get(from)).get(mapping.get(to));
+        if(mapping.containsKey(from)&&mapping.containsKey(to))
+            return matrix.get(mapping.get(from)).get(mapping.get(to));
+        else
+            return false;
     }
 
     public Set<K> getStartNodeConnects(K from,boolean directDependence) {

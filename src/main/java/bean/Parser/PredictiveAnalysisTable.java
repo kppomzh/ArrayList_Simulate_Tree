@@ -38,11 +38,8 @@ public class PredictiveAnalysisTable implements Serializable {
     }
 
     public void setDriverTable(String terminal,String nonterminal,Rule r) throws LeftCommonFactorConflict {
-//        if(!(TerminalMap.containsKey(terminal)&&nonTerminalMap.containsKey(nonterminal))){
-//            先假定所有的非终结符和终结符都在map里
-//        }
         if(terminal.equals("ε")){
-
+            return;
         }
         if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)]==null) {
             driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)] = r;

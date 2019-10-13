@@ -31,6 +31,7 @@ public class FollowCollectionMaker {
      * 规定KVEntryImpl的key记录follow->follow关系，value记录first&&ε∈first?follow:null->follow
      */
     private Map<String, KVEntryImpl<Set<String>, Set<String>>> nodeDependents;
+    private Set<String> loop2LoopCount;
 
     public FollowCollectionMaker(Map<String, RuleInfo> ruleMap, Set<String> ruleNameSet) {
         matrix = new ListMatrix<>();
@@ -56,6 +57,7 @@ public class FollowCollectionMaker {
             countSingalLinkNode(nonDependents.get(loop));
         }
 
+        matrix.countClosures();
         Set<String> loopNodesDeputy = matrix.getLoops(true);
         for (String node : loopNodesDeputy) {
             countLoopLinkNode(node);
@@ -132,12 +134,13 @@ public class FollowCollectionMaker {
     /**
      * 处理环式依赖
      * 目前的办法是从一个代表节点出发，在这个环上循环两遍
+     * 更正：应该循环到某个节点的follow集不再增长的时候最后循环一遍再停止
      *
      * @param startNode
      */
     private void countLoopLinkNode(String startNode) throws FollowDebugException {
         Set<String> singalLoopNode = matrix.getOnLoopNodes(startNode);
-        String fatherNode = startNode, childNode = null, nextNode = null;
+        loop2LoopCount=new HashSet<>(singalLoopNode);
 
         //环形依赖节点第一次循环
         RecursiveLoopLinkNode(startNode, startNode, new HashSet<>(singalLoopNode), false);
@@ -162,9 +165,17 @@ public class FollowCollectionMaker {
         Iterator<String> childsIterable = onLoopChilds.iterator();
         while (childsIterable.hasNext()) {
             childNode = childsIterable.next();
-            addFollowSet(fatherNode, childNode);
+            ;
             if (delDependent) {
                 delDependents(childNode, fatherNode, false);
+            }
+            else{
+                if(addFollowSet(fatherNode, childNode)){
+                    loop2LoopCount.remove(childNode);
+                }
+                else{
+                    //实际上这里整体应该用引用计数来处理
+                }
             }
 
             Set<String> tempChildCount = matrix.getEndNodeConnects(childNode, true);
@@ -191,7 +202,8 @@ public class FollowCollectionMaker {
      * @param fatherule
      * @param childrule
      */
-    private void addFollowSet(String fatherule, String childrule) {
+    private boolean addFollowSet(String fatherule, String childrule) {
+        int follownum=ruleMap.get(childrule).getFollowSet().size();
         ruleMap.get(childrule).addFollowSet(ruleMap.get(fatherule).getFirstSet());
 
         //s的first集中是否有ε
@@ -199,6 +211,7 @@ public class FollowCollectionMaker {
             //添加follow集到childrule的follow集
             ruleMap.get(childrule).addFollowSet(ruleMap.get(fatherule).getFollowSet());
         }
+        return follownum==ruleMap.get(childrule).getFollowSet().size();
     }
 
     /**
