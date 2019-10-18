@@ -1,14 +1,11 @@
 package GrammarMaker;
 
-import Exceptions.GrammerMakerError.FollowDebugException;
-import Exceptions.GrammerMakerError.GrammerUndefined;
-import Exceptions.GrammerMakerError.LeftCommonFactorConflict;
-import Exceptions.GrammerMakerError.TokenisRepeat;
+import Exceptions.GrammerMakerError.Impl.*;
 import Lex.Lex;
 import Parser.Parser;
 import Utils.JavaPoet.makeBranchTreeNode;
 import bean.GrammerMaker.RuleInfo;
-import bean.GrammerMaker.childNodeProperty;
+import bean.GrammerMaker.LanguageNodeProperty;
 import bean.KVEntryImpl;
 import bean.Lex.IdentifierSetter;
 import bean.Parser.PredictiveAnalysisTable;
@@ -34,8 +31,10 @@ public class Reader {
     /**
      * ruleNameSet记录非终结符存在性
      * keyNameSet记录终结符存在性
+     * markCollection记录标点符号，未来分析AST类的时候要用
      */
     private Set<String> ruleNameSet,keyNameSet;
+    private Collection<String> markCollection;
 
     public Reader(String basePath) throws IOException {
         ruleNameSet =new HashSet<>();
@@ -64,6 +63,7 @@ public class Reader {
                     key=collection.toArray(new String[0]);
                     break;
                 case "mark.grammer":
+                    markCollection=collection;
                     mark=collection.toArray(new String[0]);
                     break;
             }
@@ -101,27 +101,14 @@ public class Reader {
      * 生成位于Tree_Span.Impl包下的AST数据结构
      * @return
      */
-    public List<File> ASTGenerate() throws ClassNotFoundException, IOException {
+    public List<File> ASTGenerate() throws ClassNotFoundException, IOException, InfinityRightRecursion {
         List<File> javaFiles=new LinkedList<>();
-        //之所以新建一个Set对象的原因是在此过程中需要移除一些被认定为“循环保持符”的非终结符
-        List<String> toMakenonTerminal=new ArrayList<>(ruleNameSet);
-        for (int loop=0;loop<toMakenonTerminal.size();loop++){
-            String nodeName=toMakenonTerminal.get(loop);
-            //统计非终结符每条产生式的信息
-            List<Rule> rules=ruleMap.get(nodeName).getRules();
-            childNodeProperty[] prop;
-            boolean isLoop=false,hasEpsilon=false;
-
-            prop = new childNodeProperty[rules.size()];
-            for (int i = 0; i < rules.size(); i++) {
-                for (int j = 0; j < rules.get(i).getRules().size(); j++) {
-                    prop[i] = new childNodeProperty(nodeName);
-                }
-            }
-
+        ASTPropertiesMaker maker=new ASTPropertiesMaker(ruleNameSet,ruleMap,markCollection);
+        Collection<LanguageNodeProperty> properties=maker.countASTProperties();
+        for (LanguageNodeProperty prop:properties){
             //根据统计信息生成AST类
-            makeBranchTreeNode node=new makeBranchTreeNode(nodeName);
-            node.AnalysisClass(prop);
+            makeBranchTreeNode node=new makeBranchTreeNode(prop);
+            node.AnalysisChildPropClass();
             javaFiles.add(node.buildFile());
         }
         return javaFiles;
@@ -188,7 +175,7 @@ public class Reader {
 
                 for (String singalrule : rules) {
                     if (!(ruleNameSet.contains(singalrule) || keyNameSet.contains(singalrule))) {
-                        throw new GrammerUndefined("该文法单位的定义不存在~！");
+                        throw new GrammerUndefined(singalrule);
                     }
                 }
 

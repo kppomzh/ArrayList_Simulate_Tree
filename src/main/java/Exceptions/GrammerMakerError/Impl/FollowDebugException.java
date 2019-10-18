@@ -1,4 +1,4 @@
-package Exceptions.GrammerMakerError;
+package Exceptions.GrammerMakerError.Impl;
 
 public class FollowDebugException extends Exception {
     public FollowDebugException(String clasz,String node,String line){

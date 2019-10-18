@@ -1,6 +1,6 @@
 package bean.Parser;
 
-import Exceptions.GrammerMakerError.LeftCommonFactorConflict;
+import Exceptions.GrammerMakerError.Impl.LeftCommonFactorConflict;
 import Exceptions.ParserError.Impl.NullGrammerBranch;
 import Exceptions.ParserError.ParserBaseException;
 import bean.Word;

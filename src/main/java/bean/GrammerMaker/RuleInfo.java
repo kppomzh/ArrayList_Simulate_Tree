@@ -21,7 +21,7 @@ public class RuleInfo {
 
     public void addRule(Rule rule){
         rules.add(rule);
-        if(rule.getFirstMark().equals("ε"))
+        if(rule==Rule.epsilon)
             giveFollow=true;
     }
 
@@ -55,7 +55,13 @@ public class RuleInfo {
     public boolean hasNext(){
         if(rulesIterator==null)
             rulesIterator=rules.iterator();
-        return rulesIterator.hasNext();
+        boolean res=rulesIterator.hasNext();
+        if(!res){
+            //自动重置，下次再来遍历的时候就自动循环回去
+            rulesIterator=null;
+            System.gc();
+        }
+        return res;
     }
     public Rule getNextRule(){
         return rulesIterator.next();

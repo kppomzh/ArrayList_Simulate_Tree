@@ -1,6 +1,6 @@
 package GrammarMaker;
 
-import Exceptions.GrammerMakerError.FollowDebugException;
+import Exceptions.GrammerMakerError.Impl.FollowDebugException;
 import bean.GrammerMaker.ListMatrix;
 import bean.GrammerMaker.RuleInfo;
 import bean.KVEntryImpl;

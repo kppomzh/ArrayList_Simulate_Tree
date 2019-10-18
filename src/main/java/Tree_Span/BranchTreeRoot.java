@@ -25,4 +25,24 @@ public abstract class BranchTreeRoot {
     public void setBranchName(String branchName) {
         this.branchName = branchName;
     }
+
+    public static class S extends BranchTreeRoot {
+        public S(){
+
+        }
+        @Override
+        protected void addChild(BranchTreeRoot child) {
+
+        }
+
+        @Override
+        protected Collection<? extends BranchTreeRoot> getChilds() {
+            return null;
+        }
+
+        @Override
+        protected void SetAttribute(String attr, String o) {
+
+        }
+    }
 }

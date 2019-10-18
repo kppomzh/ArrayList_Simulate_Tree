@@ -1,6 +1,6 @@
 package junit;
 
-import Exceptions.GrammerMakerError.NullKeyException;
+import Exceptions.GrammerMakerError.Impl.NullKeyException;
 import bean.GrammerMaker.HierarchicalTree;
 import org.junit.Test;
 
@@ -13,7 +13,7 @@ public class HierarchicalTree_Useable {
         HierarchicalTree<String, HashSet<Object>,Object> tree;
         tree= new HierarchicalTree("",HashSet.class);
         tree.put("abc","");
-        if(tree.getMainLevel()>0){
+        if(tree.getMaxLevel()>0){
             System.out.println("true");
         }
         else {

@@ -1,8 +1,9 @@
 package Parser;
 
+import Exceptions.ParserError.Impl.InputNotEmpty;
+import Exceptions.ParserError.Impl.StackNotEmpty;
 import Exceptions.ParserError.ParserBaseException;
 import Tree_Span.BranchTreeRoot;
-import Tree_Span.Impl.S;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Word;
 
@@ -14,6 +15,10 @@ import java.util.List;
  * 语法分析总控程序
  */
 public class Parser implements Serializable {
+    private static final Word sharp;
+    static {
+        sharp=new Word("#",0,0);
+    }
     private PredictiveAnalysisTable pat;
     private LinkedList<String> analysisStack;
 
@@ -24,13 +29,18 @@ public class Parser implements Serializable {
     }
 
     public BranchTreeRoot Controller(LinkedList<Word> words) throws ParserBaseException {
-        BranchTreeRoot grammerTree=new S();
+//        BranchTreeRoot grammerTree=new Tree_Span.BranchTreeRoot.S();
+        BranchTreeRoot nowTree;
         List<String> nextListRule;
+        Word last=words.getLast();
 
         while(!analysisStack.isEmpty()){
             if(words.isEmpty()){
-                nextListRule = pat.getNextRule(analysisStack.getFirst(), new Word("#",0,0));
-                if (nextListRule.get(0).equals("ε")) {
+                nextListRule = pat.getNextRule(analysisStack.getFirst(), sharp);
+                if(nextListRule==null){
+                    throw new StackNotEmpty(last,analysisStack);
+                }
+                else if (nextListRule.get(0).equals("ε")) {
                     analysisStack.pop();
                 }else{
                     analysisStack.pop();
@@ -45,9 +55,7 @@ public class Parser implements Serializable {
             }
             else {
                 nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst());
-                if (nextListRule == null) {
-                    //throw error
-                } else if (nextListRule.get(0).equals("ε")) {
+                if (nextListRule.get(0).equals("ε")) {
                     analysisStack.pop();
                 } else{
                     analysisStack.pop();
@@ -57,13 +65,11 @@ public class Parser implements Serializable {
                 }
             }
         }
-        if(!analysisStack.isEmpty()){
-
-        }
         if(!words.isEmpty()){
-
+            throw new InputNotEmpty(words.getFirst(),words);
         }
 
-        return grammerTree;
+        //通过analysisStack找到对应的AST类，但是现在这个工作还暂时不能开展，需要等待AST类的自动生成代码确定AST结构之后再进行。
+        return null;
     }
 }

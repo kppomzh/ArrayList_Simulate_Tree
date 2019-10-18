@@ -24,6 +24,10 @@ public class Rule implements Serializable {
         return rules.get(0);
     }
 
+    public String getLastMark() {
+        return rules.get(rules.size()-1);
+    }
+
     public List<String> getRules() {
         return rules;
     }

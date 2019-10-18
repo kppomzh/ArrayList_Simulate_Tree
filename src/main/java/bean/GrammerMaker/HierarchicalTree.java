@@ -1,6 +1,6 @@
 package bean.GrammerMaker;
 
-import Exceptions.GrammerMakerError.NullKeyException;
+import Exceptions.GrammerMakerError.Impl.NullKeyException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -59,7 +59,7 @@ public class HierarchicalTree<K, V extends Collection<D>,D> {
         return root;
     }
 
-    public int getMainLevel() {
+    public int getMaxLevel() {
         return mainLevel;
     }
 
@@ -74,9 +74,9 @@ public class HierarchicalTree<K, V extends Collection<D>,D> {
     public void put(K key,K fatherNodeKey) throws NullKeyException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         //严格禁止将root节点作为子节点
         if(key.equals(root))
-            throw new NullKeyException();
+            throw new NullKeyException("禁止将root节点作为子节点");
         if(!tree.containsKey(fatherNodeKey))
-            throw new NullKeyException();
+            throw new NullKeyException("文法中将不存在的非终结符计入继承关系");
 
         int fatherLevel=tree.get(fatherNodeKey).getLevel();
         if(fatherLevel==mainLevel){
