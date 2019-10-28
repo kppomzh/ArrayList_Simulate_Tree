@@ -106,7 +106,7 @@ public class makeBranchTreeNode {
 
         return mb.build();
     }
-    
+
     /**
      * @param fieldName
      * @return 1.编辑addChild方法，加入一个if判断
