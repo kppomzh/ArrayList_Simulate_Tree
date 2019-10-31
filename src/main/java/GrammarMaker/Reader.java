@@ -91,7 +91,7 @@ public class Reader {
             makeRule(grammerReader.makeConbinationGrammer(grammerReader.getLinesinFile(filename+".grammer")));
         }
 
-        countFirstCollection("S");
+        countFirstCollection("S",new HashSet<>());
         countFollowCollection();
 
         return new Parser(makeMap());
@@ -188,7 +188,11 @@ public class Reader {
     /**
      * 计算first集
      */
-    private void countFirstCollection(String s){
+    private void countFirstCollection(String s,Set<String> stopValue){
+        if(stopValue.contains(s)){
+            return;
+        }
+
         for(String child:this.ruleNameSet){
             RuleInfo ri=ruleMap.get(child);
             while(ri.hasNext()){
@@ -198,7 +202,8 @@ public class Reader {
                 }
                 else {
                     if(ruleMap.get(first).getFirstSet().size()==0){
-                        countFirstCollection(first);
+                        stopValue.add(s);
+                        countFirstCollection(first,stopValue);
                     }
                     ri.addFirstSet(ruleMap.get(first).getFirstSet());
                 }

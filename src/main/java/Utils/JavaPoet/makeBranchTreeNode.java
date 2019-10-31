@@ -52,7 +52,7 @@ public class makeBranchTreeNode {
                 regAttribute(notloopEntry.getValue().getNodeName(),"string",notloopEntry.getValue().getTerminalAttribute());
             }
             else{
-
+                regAttribute(notloopEntry.getValue().getNodeName(),"bool");
             }
         }
 
@@ -79,13 +79,7 @@ public class makeBranchTreeNode {
         switch(type){
             case "string":
                 ts.addField(String.class, attrbute, Modifier.PUBLIC);
-
-                if(obj==null||obj.length==0){
-
-                }
-                else{
-
-                }
+                regAttrSetterMethod(attrbute,obj==null||obj.length==0,obj);
                 break;
             case "bool":
                 //默认按照Boolean处理，所以bool和default合在一起
@@ -101,10 +95,24 @@ public class makeBranchTreeNode {
         }
     }
 
-    private MethodSpec regAttrSetterMethod(String fieldName){
-        MethodSpec.Builder mb = MethodSpec.methodBuilder(fieldName);
+    private void regAttrSetterMethod(String fieldName,boolean toSwitch,String... obj){
+        ts.addField(String.class, fieldName, Modifier.PUBLIC);
+        Constructor.addStatement("$L=null", fieldName);
 
-        return mb.build();
+        OverrideFunctions[2].addStatement("if($L.equals($S){", "attr", fieldName);
+        if(toSwitch){
+            OverrideFunctions[2].beginControlFlow("switch(o)");
+            for(String s:obj){
+                OverrideFunctions[2].addStatement("case $L:",s);
+                OverrideFunctions[2].addStatement("$L=$L",fieldName,s);
+                OverrideFunctions[2].addStatement("break");
+            }
+            OverrideFunctions[2].endControlFlow();
+        }
+        else {
+            OverrideFunctions[2].addStatement("$L=o", fieldName);
+        }
+        OverrideFunctions[2].addStatement("}");
     }
 
     /**
