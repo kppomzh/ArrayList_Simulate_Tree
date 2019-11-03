@@ -14,21 +14,30 @@ public class makeBranchTreeNode {
     private TypeSpec.Builder ts;
     private String baseDir = "src/main/java", packagePath = "Tree_Span.Impl", className;
     private MethodSpec.Builder[] OverrideFunctions;//继承方法
+    private MethodSpec.Builder addChild,getChilds,SetAttribute;
     private MethodSpec.Builder Constructor;//构造方法
     private LanguageNodeProperty thisProp;
+    private Set<String> not2Attr,buildFiled;
 
-    public makeBranchTreeNode(LanguageNodeProperty thisProp) throws ClassNotFoundException {
+    public makeBranchTreeNode(LanguageNodeProperty thisProp,Set<String> ruleNameSet) throws ClassNotFoundException {
         className = thisProp.getNodeName();
         ts = TypeSpec.classBuilder(className);
         ts.superclass(TypeName.get(BranchTreeRoot.class));
 
 //        nonTerminalMethodSet = new HashSet<>();
         OverrideFunctions = makeExtendMethodBuilder();
+        addChild=OverrideFunctions[0];
+        getChilds=OverrideFunctions[1];
+        SetAttribute=OverrideFunctions[2];
         Constructor = MethodSpec.constructorBuilder();
+        Constructor.addModifiers(Modifier.PUBLIC);
         this.thisProp=thisProp;
+        not2Attr=ruleNameSet;
+        buildFiled=new HashSet<>();
     }
 
     public File buildFile() throws IOException {
+        getChilds.addStatement("return childs");
         ts.addMethod(Constructor.build());
 
         for (int i = 0; i < OverrideFunctions.length; i++) {
@@ -38,7 +47,7 @@ public class makeBranchTreeNode {
         BranchTreeNode = JavaFile.builder(packagePath, ts.build()).build();
         BranchTreeNode.writeTo(new File(baseDir));
 
-        return new File(baseDir + '/' + packagePath.replaceAll("\\.", "/") + className + ".java");
+        return new File(baseDir + '/' + packagePath.replaceAll("\\.", "/") + '/' +  className + ".java");
     }
 
     public void AnalysisChildPropClass() {
@@ -51,17 +60,21 @@ public class makeBranchTreeNode {
             if(notloopEntry.getValue().getTerminalStructure()){
                 regAttribute(notloopEntry.getValue().getNodeName(),"string",notloopEntry.getValue().getTerminalAttribute());
             }
+            else if(not2Attr.contains(notloopEntry.getValue().getNodeName())){
+                regNormalMethod(notloopEntry.getValue().getNodeName());
+            }
             else{
                 regAttribute(notloopEntry.getValue().getNodeName(),"bool");
             }
         }
 
         for(Map.Entry<String,LanguageNodeProperty> toloopEntry:toloop.entrySet()){
-            regListMethod(toloopEntry.getKey());
+            ts.addMethod(regListMethod(toloopEntry.getKey()));
         }
+        AnalysisAttrTerminal();
     }
 
-    public void AnalysisAttrTerminal(){
+    private void AnalysisAttrTerminal(){
         for(String attr:thisProp.getTerminalAttribute()){
             regAttribute(attr,"bool");
         }
@@ -76,6 +89,12 @@ public class makeBranchTreeNode {
      *            会用简单的赋值函数处理
      */
     private void regAttribute(String attrbute,String type,String... obj) {
+        if(this.buildFiled.contains(attrbute))
+            return;
+        else{
+            this.buildFiled.add(attrbute);
+        }
+
         switch(type){
             case "string":
                 ts.addField(String.class, attrbute, Modifier.PUBLIC);
@@ -88,52 +107,97 @@ public class makeBranchTreeNode {
 
                 Constructor.addStatement("$L=false", attrbute);
 
-                OverrideFunctions[2].addStatement("if($L.equals($S){", "attr", attrbute);
-                OverrideFunctions[2].addStatement("$L=true", attrbute);
-                OverrideFunctions[2].addStatement("}");
+                SetAttribute.beginControlFlow("if($L.equals($S))","attr", attrbute);
+                SetAttribute.addStatement("$L=true", attrbute);
+                SetAttribute.endControlFlow();
                 break;
         }
     }
 
     private void regAttrSetterMethod(String fieldName,boolean toSwitch,String... obj){
+        if(this.buildFiled.contains(fieldName))
+            return;
+        else{
+            this.buildFiled.add(fieldName);
+        }
+
         ts.addField(String.class, fieldName, Modifier.PUBLIC);
         Constructor.addStatement("$L=null", fieldName);
 
-        OverrideFunctions[2].addStatement("if($L.equals($S){", "attr", fieldName);
+        SetAttribute.beginControlFlow("if($L.equals($S))", "attr", fieldName);
         if(toSwitch){
-            OverrideFunctions[2].beginControlFlow("switch(o)");
+            SetAttribute.beginControlFlow("switch(o)");
             for(String s:obj){
-                OverrideFunctions[2].addStatement("case $L:",s);
-                OverrideFunctions[2].addStatement("$L=$L",fieldName,s);
-                OverrideFunctions[2].addStatement("break");
+                SetAttribute.addStatement("case $L:",s);
+                SetAttribute.addStatement("$L=$L",fieldName,s);
+                SetAttribute.addStatement("break");
             }
-            OverrideFunctions[2].endControlFlow();
+            SetAttribute.endControlFlow();
         }
         else {
-            OverrideFunctions[2].addStatement("$L=o", fieldName);
+            SetAttribute.addStatement("$L=o", fieldName);
         }
-        OverrideFunctions[2].addStatement("}");
+        SetAttribute.endControlFlow();
     }
 
     /**
-     * @param fieldName
-     * @return 1.编辑addChild方法，加入一个if判断
-     * 2.编辑构造方法，加入一个初始化
+     * 1.编辑addChild方法，加入一个if判断
+     * 2.编辑构造方法，加入一个初始化新的BranchTreeRoot类的语句
      * 3.编辑TypeSpec，加入一个新变量
      * 4.在getChilds中加入对应的addAll代码
      * 5.加入一个get方法
+     * @param fieldName
+     * @return
+     */
+    private void regNormalMethod(String fieldName){
+        if(this.buildFiled.contains(fieldName))
+            return;
+        else{
+            this.buildFiled.add(fieldName);
+        }
+
+        ts.addField(BranchTreeRoot.class, "Node" + fieldName, Modifier.PUBLIC);
+        addChild.beginControlFlow("if(child.getBranchName().equals($S))",fieldName);
+        addChild.addStatement("Node$L=child",fieldName);
+        addChild.endControlFlow();
+
+//        MethodSpec.Builder mb = MethodSpec.methodBuilder(fieldName);
+//        mb.returns(BranchTreeRoot.class);
+//        mb.addModifiers(Modifier.PUBLIC);
+//        mb.addStatement("return Node$L", fieldName);
+
+        getChilds.addStatement("childs.add(Node$L)", fieldName);
+//        return mb.build();
+    }
+
+    /**
+     * 1.编辑addChild方法，加入一个if判断
+     * 2.编辑构造方法，加入一个初始化新的ArrayList<BranchTreeRoot>类的语句
+     * 3.编辑TypeSpec，加入一个新变量
+     * 4.在getChilds中加入对应的addAll代码
+     * 5.加入一个get方法
+     * @param fieldName
+     * @return
      */
     private MethodSpec regListMethod(String fieldName) {
+        if(this.buildFiled.contains(fieldName))
+            return null;
+        else{
+            this.buildFiled.add(fieldName);
+        }
+
         ts.addField(ParameterizedTypeName.get(ArrayList.class, BranchTreeRoot.class), "List" + fieldName, Modifier.PRIVATE);
         Constructor.addStatement("List$L=new ArrayList<>()", fieldName);
-        OverrideFunctions[0].addStatement("if(child.getBranchName().equals($S){\n        $L.add(child);\n    }", fieldName, "List" + fieldName);
+        addChild.beginControlFlow("if(child.getBranchName().equals($S))",fieldName);
+        addChild.addStatement("List$L.add(child)",fieldName);
+        addChild.endControlFlow();
 
         MethodSpec.Builder mb = MethodSpec.methodBuilder(fieldName);
         mb.returns(ParameterizedTypeName.get(List.class, BranchTreeRoot.class));
         mb.addModifiers(Modifier.PUBLIC);
-        mb.addStatement("return List$L;", fieldName);
+        mb.addStatement("return List$L", fieldName);
 
-        OverrideFunctions[2].addStatement("childs.addAll(List$L)", fieldName);
+        getChilds.addStatement("childs.addAll(List$L)", fieldName);
         return mb.build();
     }
 
@@ -157,7 +221,7 @@ public class makeBranchTreeNode {
         builder[1].returns(ParameterizedTypeName.get(Collection.class, BranchTreeRoot.class));
         builder[1].addAnnotation(Override.class);
         builder[1].addModifiers(Modifier.PUBLIC);
-        builder[1].addStatement("$T childs=new $T<>();", ParameterizedTypeName.get(Collection.class, BranchTreeRoot.class), ParameterizedTypeName.get(LinkedList.class));
+        builder[1].addStatement("$T childs=new $T<>()", ParameterizedTypeName.get(Collection.class, BranchTreeRoot.class), ParameterizedTypeName.get(LinkedList.class));
 //        builder[1].addStatement("")
 
         builder[2] = MethodSpec.methodBuilder("SetAttribute");

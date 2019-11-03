@@ -12,15 +12,16 @@ public class ASTPropertiesMaker {
     //之所以新建一个Set对象的原因是在此过程中需要移除一些被认定为“循环保持符”的非终结符
     private List<String> toMakenonTerminal;
     private Map<String, RuleInfo> ruleMap;
-    private int countProp;
     private Map<String, LanguageNodeProperty> propMap;
     private Collection<String> markCollection;
+    private boolean[] rm;
 
     public ASTPropertiesMaker(Set<String> ruleNameSet, Map<String, RuleInfo> ruleMap, Collection<String> markCollection){
         toMakenonTerminal=new ArrayList<>(ruleNameSet);
         this.ruleMap=ruleMap;
         propMap=new HashMap<>();
         this.markCollection=markCollection;
+        rm=new boolean[toMakenonTerminal.size()];
     }
 
     /**
@@ -30,8 +31,10 @@ public class ASTPropertiesMaker {
      * 也会在后来的过程中逐渐丰满
      */
     public Collection<LanguageNodeProperty> countASTProperties() throws InfinityRightRecursion {
+        int countProp;
         for(countProp=0;countProp<toMakenonTerminal.size();countProp++){
-            RecursiveAnalysisChildProp(toMakenonTerminal.get(countProp));
+            if(!rm[countProp])
+                RecursiveAnalysisChildProp(toMakenonTerminal.get(countProp));
         }
         return propMap.values();
     }
@@ -51,8 +54,9 @@ public class ASTPropertiesMaker {
         }
         this.FormalStructureCheck(ri,thisProp,recursion,terminal);
 
-        toMakenonTerminal.remove(countProp);
-        countProp--;
+        rm[toMakenonTerminal.indexOf(node)]=true;
+//        toMakenonTerminal.remove(node);
+//        countProp--;
     }
 
     /**

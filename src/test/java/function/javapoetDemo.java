@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class javapoetDemo {
     @Test
@@ -30,7 +31,7 @@ public class javapoetDemo {
         tsb.addField(ParameterizedTypeName.get(ArrayList.class,String.class),"list", Modifier.PRIVATE);
         tsb.addMethod(makeMethod("addList"));
 
-        for(MethodSpec.Builder msb:new makeBranchTreeNode(new LanguageNodeProperty("test")).makeExtendMethodBuilder()){
+        for(MethodSpec.Builder msb:new makeBranchTreeNode(new LanguageNodeProperty("test"),new HashSet<>()).makeExtendMethodBuilder()){
             tsb.addMethod(msb.build());
         }
         return tsb.build();

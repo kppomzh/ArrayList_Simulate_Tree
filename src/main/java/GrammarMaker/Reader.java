@@ -107,7 +107,7 @@ public class Reader {
         Collection<LanguageNodeProperty> properties=maker.countASTProperties();
         for (LanguageNodeProperty prop:properties){
             //根据统计信息生成AST类
-            makeBranchTreeNode node=new makeBranchTreeNode(prop);
+            makeBranchTreeNode node=new makeBranchTreeNode(prop,this.ruleNameSet);
             node.AnalysisChildPropClass();
             javaFiles.add(node.buildFile());
         }
