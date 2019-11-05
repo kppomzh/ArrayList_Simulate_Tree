@@ -12,7 +12,7 @@ import java.util.Iterator;
 public abstract class BranchTreeRoot {
     private String branchName;
 
-    protected abstract void addChild(BranchTreeRoot child);
+    public abstract void addChild(BranchTreeRoot child);
 
     protected abstract Collection<? extends BranchTreeRoot> getChilds();
 
@@ -31,7 +31,7 @@ public abstract class BranchTreeRoot {
 
         }
         @Override
-        protected void addChild(BranchTreeRoot child) {
+        public void addChild(BranchTreeRoot child) {
 
         }
 

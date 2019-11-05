@@ -4,12 +4,15 @@ import Exceptions.ParserError.Impl.InputNotEmpty;
 import Exceptions.ParserError.Impl.StackNotEmpty;
 import Exceptions.ParserError.ParserBaseException;
 import Tree_Span.BranchTreeRoot;
+import Utils.RunampCompileASTClasses;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Word;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * 语法分析总控程序
@@ -21,16 +24,22 @@ public class Parser implements Serializable {
     }
     private PredictiveAnalysisTable pat;
     private LinkedList<String> analysisStack;
+    //RunampCompileASTClasses类没有办法序列化，所以这里到底怎么引入这个类是个问题，暂时也没想到好的解决方案
+    private RunampCompileASTClasses runAST;
+    private BranchTreeRoot ASTRoot;
+    private Stack<BranchTreeRoot> nodes;
 
-    public Parser(PredictiveAnalysisTable pat){
+    public Parser(PredictiveAnalysisTable pat) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
         this.pat=pat;
         analysisStack=new LinkedList<>();
         analysisStack.push("S");
+        runAST=null;
+        ASTRoot=runAST.ClassLoader("S");
+        nodes=new Stack<>();
     }
 
-    public BranchTreeRoot Controller(LinkedList<Word> words) throws ParserBaseException {
-//        BranchTreeRoot grammerTree=new Tree_Span.BranchTreeRoot.S();
-        BranchTreeRoot nowTree;
+    public BranchTreeRoot Controller(LinkedList<Word> words) throws ParserBaseException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        BranchTreeRoot nowTree=ASTRoot;
         List<String> nextListRule;
         Word last=words.getLast();
 
@@ -55,6 +64,10 @@ public class Parser implements Serializable {
             }
             else {
                 nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst());
+                BranchTreeRoot childNode=runAST.ClassLoader(analysisStack.getFirst());
+                nowTree.addChild(childNode);
+                nodes.push(nowTree);
+                nowTree=childNode;
                 if (nextListRule.get(0).equals("ε")) {
                     analysisStack.pop();
                 } else{
