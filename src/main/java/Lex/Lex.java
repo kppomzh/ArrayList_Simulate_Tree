@@ -78,7 +78,6 @@ public class Lex implements Serializable {
 
         words.removeFirst();
         return words;
-//        throw new TerminatorNotFoundException(line,list,';');
     }
 
     /**
@@ -184,12 +183,12 @@ public class Lex implements Serializable {
         }
         nowindex=loop;
         if(point) {
-            Word w=new Word("Double", line, list);
+            Word w=new Word("DOUBLE", line, list);
             w.setSubstance(sb.toString());
             return w;
         }
         else{
-            Word w=new Word("Integer", line, list);
+            Word w=new Word("INTEGER", line, list);
             w.setSubstance(sb.toString());
             return w;
         }
@@ -216,7 +215,7 @@ public class Lex implements Serializable {
                     break;
             }
         }
-        Word w=new Word("String", line, list);
+        Word w=new Word("STRING", line, list);
         w.setSubstance(sb.toString());
         //因为并不知道字符串后面有什么，而字符串识别的自动机在后一个单引号前停下
         //所以要将nowindex加一，并且重置status让程序自己再重置status

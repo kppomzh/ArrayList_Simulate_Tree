@@ -5,6 +5,7 @@ import Exceptions.ParserError.Impl.StackNotEmpty;
 import Exceptions.ParserError.ParserBaseException;
 import Tree_Span.BranchTreeRoot;
 import Utils.RunampCompileASTClasses;
+import bean.KVEntryImpl;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Word;
 
@@ -27,15 +28,15 @@ public class Parser implements Serializable {
     //RunampCompileASTClasses类没有办法序列化，所以这里到底怎么引入这个类是个问题，暂时也没想到好的解决方案
     private RunampCompileASTClasses runAST;
     private BranchTreeRoot ASTRoot;
-    private Stack<BranchTreeRoot> nodes;
+    private Stack<BranchTreeRoot> nodePop;
 
     public Parser(PredictiveAnalysisTable pat) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
         this.pat=pat;
         analysisStack=new LinkedList<>();
         analysisStack.push("S");
-        runAST=null;
+        runAST=RunampCompileASTClasses.getInstance();
         ASTRoot=runAST.ClassLoader("S");
-        nodes=new Stack<>();
+        nodePop =new Stack<>();
     }
 
     public BranchTreeRoot Controller(LinkedList<Word> words) throws ParserBaseException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -61,12 +62,13 @@ public class Parser implements Serializable {
             else if(analysisStack.getFirst().equals(words.getFirst().getName())){
                 analysisStack.pop();
                 words.pop();
+//                nowTree
             }
             else {
                 nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst());
                 BranchTreeRoot childNode=runAST.ClassLoader(analysisStack.getFirst());
                 nowTree.addChild(childNode);
-                nodes.push(nowTree);
+                nodePop.push(nowTree);
                 nowTree=childNode;
                 if (nextListRule.get(0).equals("ε")) {
                     analysisStack.pop();
@@ -83,6 +85,10 @@ public class Parser implements Serializable {
         }
 
         //通过analysisStack找到对应的AST类，但是现在这个工作还暂时不能开展，需要等待AST类的自动生成代码确定AST结构之后再进行。
-        return null;
+        return ASTRoot;
+    }
+
+    public void Clear() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        ASTRoot=runAST.ClassLoader("S");
     }
 }

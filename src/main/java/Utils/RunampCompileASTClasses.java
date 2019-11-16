@@ -7,26 +7,28 @@ import Tree_Span.BranchTreeRoot;
 import javax.tools.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.List;
+import Tree_Span.Impl.S;
 
-public class RunampCompileASTClasses {
+public class RunampCompileASTClasses implements Serializable {
     private String classpath1;
     private String classpath2;
     private String basePath;
     private URLClassLoader loader;
 
     private RunampCompileASTClasses() throws UnsupportedEncodingException, MalformedURLException {
-        classpath1=java.net.URLDecoder.decode(new BranchTreeRoot.S().getClass().getResource("").getFile(),"utf-8").substring(1);
-        classpath2=java.net.URLDecoder.decode(new BranchTreeRoot.S().getClass().getResource("/").getFile(),"utf-8").substring(1);
+        classpath1=java.net.URLDecoder.decode(new Tree_Span.S().getClass().getResource("").getFile(),"utf-8").substring(1);
+        classpath2=java.net.URLDecoder.decode(new Tree_Span.S().getClass().getResource("/").getFile(),"utf-8").substring(1);
         basePath=classpath2.replace("target/test-classes/","src/main/java/Tree_Span/ImplClasses/");
 //        loader=ClassLoader.getSystemClassLoader();
-        loader=new URLClassLoader(new URL[]{new URL("file://"+basePath+"Tree_Span/Impl/")});
+        loader=new URLClassLoader(new URL[]{new URL("file://"+basePath+"Tree_Span/Impl/")},this.getClass().getClassLoader());
+
     }
 
     public static RunampCompileASTClasses getInstance(){
@@ -73,12 +75,18 @@ public class RunampCompileASTClasses {
     }
 
     public BranchTreeRoot ClassLoader(String className) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        return (BranchTreeRoot) loader.loadClass(className).getEnclosingConstructor().newInstance();
+        try {
+            return (BranchTreeRoot) loader.loadClass(className).getEnclosingConstructor().newInstance();
+        }
+        catch (NoClassDefFoundError e){
+            System.out.println(System.getProperty("java.classpath"));
+            return new S();
+        }
     }
 
     public Object getBranchRootFiled(BranchTreeRoot node,String fieldName) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException, InstantiationException {
         if(fieldName.startsWith("List")){
-            return node.getClass().getMethod(node.getBranchName(),null).invoke(node);
+            return node.getClass().getMethod(node.getBranchName()).invoke(node);
         }
         else {
             return node.getClass().getField(fieldName).get(

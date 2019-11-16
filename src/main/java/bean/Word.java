@@ -54,7 +54,7 @@ public class Word extends BranchTreeRoot {
     }
 
     @Override
-    protected void addChild(BranchTreeRoot child) {
+    public void addChild(BranchTreeRoot child) {
 
     }
 
@@ -64,7 +64,7 @@ public class Word extends BranchTreeRoot {
     }
 
     @Override
-    protected void SetAttribute(String attr, String o) {
+    protected void SetAttribute(String attr, Word o) {
 
     }
 }

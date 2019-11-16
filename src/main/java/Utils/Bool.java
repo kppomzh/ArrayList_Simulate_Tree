@@ -31,7 +31,7 @@ public class Bool {
         return !sor(var);
     }
 
-    @Contract(value = "var.length==0 → false")
+    @Contract(value = "var.length==0 → false,var.length==1 → true")
     public static boolean sor(@NotNull boolean... var){
         if(var.length==0)
             return false;

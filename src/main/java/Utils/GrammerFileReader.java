@@ -41,10 +41,11 @@ public class GrammerFileReader {
         return lines;
     }
 
-    public Set<String> makeBaseGrammer(Collection<String> lines){
-        Set<String> res=new HashSet<>();
+    public Map<String,String> makeBaseGrammer(Collection<String> lines){
+        Map<String,String> res=new HashMap<>();
         for(String mark:lines){
-            res.add(mark);
+            int splitINdex=mark.lastIndexOf(':');
+            res.put(mark.substring(0,splitINdex).strip(),mark.substring(splitINdex+1).strip());
         }
         return res;
     }

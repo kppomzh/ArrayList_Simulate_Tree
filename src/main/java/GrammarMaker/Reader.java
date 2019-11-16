@@ -13,6 +13,7 @@ import bean.Parser.PredictiveAnalysisTable;
 import bean.Parser.Rule;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -37,6 +38,10 @@ public class Reader {
     private Set<String> ruleNameSet,keyNameSet;
     private Collection<String> markCollection;
 
+    //get方法需要用到的全局变量
+    private PredictiveAnalysisTable analysisTable;
+    private String[] anno = new String[0],key = new String[0],mark = new String[0];
+
     public Reader(String basePath) throws IOException {
         ruleNameSet =new HashSet<>();
         keyNameSet=new HashSet<>();
@@ -51,8 +56,7 @@ public class Reader {
      * @throws IOException
      * @throws TokenisRepeat
      */
-    public Lex LexGenerate() throws IOException, TokenisRepeat {
-        String[] anno = new String[0],key = new String[0],mark = new String[0];
+    public void LexGenerate() throws IOException, TokenisRepeat {
 
         for (int i = 0; i < 3; i++) {
             Collection<String> collection=grammerReader.getLinesinFile(FixLoadGrammer[i]);
@@ -75,7 +79,9 @@ public class Reader {
             throw new TokenisRepeat();
         }
         keyNameSet.add("ε");
+    }
 
+    public Lex getLex(){
         return new Lex(new IdentifierSetter(anno,mark,key));
     }
 
@@ -85,7 +91,7 @@ public class Reader {
      * @throws GrammerUndefined
      * @throws IOException
      */
-    public Parser ParserGenerate() throws GrammerUndefined, IOException, LeftCommonFactorConflict, FollowDebugException {
+    public void ParserGenerate() throws GrammerUndefined, IOException, LeftCommonFactorConflict, FollowDebugException {
         for(String filename:grammerFileList){
             //遍历grammer.list中记录的文件
             //传递到makeRule中
@@ -95,7 +101,11 @@ public class Reader {
         countFirstCollection("S",new HashSet<>());
         countFollowCollection();
 
-        return new Parser(makeMap());
+        analysisTable=makeMap();
+    }
+
+    public Parser getParser() throws ClassNotFoundException, InstantiationException, IllegalAccessException, InvocationTargetException {
+        return new Parser(analysisTable);
     }
 
     /**
@@ -108,9 +118,11 @@ public class Reader {
         Collection<LanguageNodeProperty> properties=maker.countASTProperties();
         for (LanguageNodeProperty prop:properties){
             //根据统计信息生成AST类
-            makeBranchTreeNode node=new makeBranchTreeNode(prop,this.ruleNameSet);
-            node.AnalysisChildPropClass();
-            javaFiles.add(node.buildFile());
+            if(!prop.getTerminalStructure()) {
+                makeBranchTreeNode node=new makeBranchTreeNode(prop);
+                node.AnalysisChildPropClass();
+                javaFiles.add(node.buildFile());
+            }
         }
         return javaFiles;
     }

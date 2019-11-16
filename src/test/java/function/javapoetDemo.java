@@ -31,7 +31,7 @@ public class javapoetDemo {
         tsb.addField(ParameterizedTypeName.get(ArrayList.class,String.class),"list", Modifier.PRIVATE);
         tsb.addMethod(makeMethod("addList"));
 
-        for(MethodSpec.Builder msb:new makeBranchTreeNode(new LanguageNodeProperty("test"),new HashSet<>()).makeExtendMethodBuilder()){
+        for(MethodSpec.Builder msb:new makeBranchTreeNode(new LanguageNodeProperty("test")).makeExtendMethodBuilder()){
             tsb.addMethod(msb.build());
         }
         return tsb.build();

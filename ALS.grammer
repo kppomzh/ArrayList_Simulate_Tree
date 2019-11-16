@@ -38,7 +38,7 @@ TABLEQUERY:( SELECTSQL ) NEW_TABLENAME
 WHERE_CLAUSE:where BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 WHERE_CLAUSE:ε
 BOOLEAN_EXPRESSION:Quantifier Boolean_Contrast Quantifier
-BOOLEAN_EXPRESSIONS:, BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
+BOOLEAN_EXPRESSIONS:comma BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:and BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:or BOOLEAN_EXPRESSION BOOLEAN_EXPRESSIONS
 BOOLEAN_EXPRESSIONS:ε
@@ -70,12 +70,12 @@ CHANGE_TABLE_QUERY:del column LISTNAME
 TABLENAME:NormalTAG
 TABLESPACENAME:NormalTAG
 LISTNAME:NormalTAG
-LISTNAME:*
+LISTNAME:star
 SEQUENCENAME:NormalTAG
 CURSORNAME:NormalTAG
 
-Table_all_Name:TABLESPACENAME . TABLENAME
-List_all_Name:Table_all_Name . LISTNAME
+Table_all_Name:TABLESPACENAME point TABLENAME
+List_all_Name:Table_all_Name point LISTNAME
 
 NEW_TABLENAME:NormalTAG
 NEW_TABLENAME:ε
@@ -92,47 +92,42 @@ Quantifier_TYPE:string
 Quantifier_TYPE:double
 Quantifier_TYPE:int
 
-#Congruent::=
-Congruent:=
-Boolean_Contrast:=
-Boolean_Contrast:==
-Boolean_Contrast:>
-Boolean_Contrast:>=
-Boolean_Contrast:<
-Boolean_Contrast:<=
-Boolean_Contrast:!=
+Congruent:assign
+Boolean_Contrast:equal
+Boolean_Contrast:lgt
+Boolean_Contrast:lge
+Boolean_Contrast:sat
+Boolean_Contrast:sae
+Boolean_Contrast:neq
 
 Math_Expression:next1_Math_Expression Binary_1_Math_Expression
-Binary_1_Math_Expression:Binary_1_Operator Binary_1_Math_Expression
+Binary_1_Math_Expression:Binary_1_Operator next1_Math_Expression Binary_1_Math_Expression
 Binary_1_Math_Expression:ε
 next1_Math_Expression:next2_Math_Expression Binary_2_Math_Expression
 Binary_2_Math_Expression:Binary_2_Operator next2_Math_Expression Binary_2_Math_Expression
 Binary_2_Math_Expression:ε
 next2_Math_Expression:next3_Math_Expression Binary_3_Math_Expression
-Binary_2_Math_Expression:Binary_3_Operator next3_Math_Expression Binary_3_Math_Expression
-Binary_2_Math_Expression:ε
+Binary_3_Math_Expression:Binary_3_Operator next3_Math_Expression Binary_3_Math_Expression
+Binary_3_Math_Expression:ε
 next3_Math_Expression:Math_Function_Expression
-next3_Math_Expression:( Math_Expression )
+next3_Math_Expression:lpar Math_Expression rpar
 next3_Math_Expression:Math_Unary_Expression
 next3_Math_Expression:Quantifier
-Binary_3_Math_Expression:ε
 
 Math_Unary_Expression:Unary_Operator Quantifier
-Math_Function_Expression:Math_Function ( Quantifier_Link )
-Quantifier_Link:ε
-Quantifier_Link:Quantifier Quantifiers
+Math_Function_Expression:Math_Function lpar Quantifier Quantifiers rpar
 
-Unary_Operator:!
-Unary_Operator:~
-Binary_1_Operator:+
-Binary_1_Operator:-
-Binary_2_Operator:*
-Binary_2_Operator:/
-Binary_2_Operator:%
-Binary_3_Operator:^
+Unary_Operator:notm
+Unary_Operator:neg
+Binary_1_Operator:plus
+Binary_1_Operator:minus
+Binary_2_Operator:multi
+Binary_2_Operator:div
+Binary_2_Operator:mod
+Binary_3_Operator:xor
 Binary_Operator:Boolean_Operator
-Boolean_Operator:&
-Boolean_Operator:|
+Boolean_Operator:andm
+Boolean_Operator:orm
 
 Math_Function:abs
 Math_Function:pow
@@ -147,3 +142,30 @@ Math_Function:sum
 Math_Function:avg
 
 MESSAGESQL:show dbtree
+
+plus:+
+minus:-
+star:*
+multi:*
+div:/
+neg:~
+notm:!
+mod:%
+xor:^
+lpar:(
+rpar:)
+assign:=
+assign::=
+equal:=
+equal:==
+lgt:>
+sat:<
+lge:>=
+sae:<=
+neq:!=
+andm:&
+orm:|
+point:.
+comma:,
+quo:'
+dquo:"

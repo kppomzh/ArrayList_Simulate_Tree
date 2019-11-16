@@ -1,7 +1,9 @@
 package Utils.JavaPoet;
 
 import Tree_Span.BranchTreeRoot;
+import Tree_Span.S;
 import bean.GrammerMaker.LanguageNodeProperty;
+import bean.Word;
 import com.squareup.javapoet.*;
 
 import javax.lang.model.element.Modifier;
@@ -11,20 +13,24 @@ import java.util.*;
 
 public class makeBranchTreeNode {
     private JavaFile BranchTreeNode;
-    private TypeSpec.Builder ts;
+    private TypeSpec.Builder ts,Start;
     private String baseDir = "src/main/java", packagePath = "Tree_Span.Impl", className;
     private MethodSpec.Builder[] OverrideFunctions;//继承方法
     private MethodSpec.Builder addChild,getChilds,SetAttribute;
     private MethodSpec.Builder Constructor;//构造方法
     private LanguageNodeProperty thisProp;
-    private Set<String> not2Attr,buildFiled;
+    /**
+     * not2Attr：非终结符，所以不能建立为属性
+     * buildField：记录已经被建立子节点的符号，当然仅限于现在这个节点中
+     */
+    private Set<String> buildFiled;//not2Attr,
 
-    public makeBranchTreeNode(LanguageNodeProperty thisProp,Set<String> ruleNameSet) throws ClassNotFoundException {
+    public makeBranchTreeNode(LanguageNodeProperty thisProp) throws ClassNotFoundException {
         className = thisProp.getNodeName();
         ts = TypeSpec.classBuilder(className);
         ts.superclass(TypeName.get(BranchTreeRoot.class));
+        ts.addModifiers(Modifier.PUBLIC);
 
-//        nonTerminalMethodSet = new HashSet<>();
         OverrideFunctions = makeExtendMethodBuilder();
         addChild=OverrideFunctions[0];
         getChilds=OverrideFunctions[1];
@@ -32,13 +38,15 @@ public class makeBranchTreeNode {
         Constructor = MethodSpec.constructorBuilder();
         Constructor.addModifiers(Modifier.PUBLIC);
         this.thisProp=thisProp;
-        not2Attr=ruleNameSet;
         buildFiled=new HashSet<>();
+
+//        Start=TypeSpec.classBuilder(ClassName.get(S.class));
     }
 
     public File buildFile() throws IOException {
         getChilds.addStatement("return childs");
         ts.addMethod(Constructor.build());
+        SetAttribute.endControlFlow();
 
         for (int i = 0; i < OverrideFunctions.length; i++) {
             ts.addMethod(OverrideFunctions[i].build());
@@ -55,89 +63,63 @@ public class makeBranchTreeNode {
         Map<String,LanguageNodeProperty> toloop=thisProp.getToLoopPropertyNode();
         //不需要建立列表的项
         Map<String,LanguageNodeProperty> notloop=thisProp.getNotLoopPropertyNode();
-        //先处理notloop，因为可能遇到那些保持循环的需要将属性类移动到loop中
-        for(Map.Entry<String,LanguageNodeProperty> notloopEntry:notloop.entrySet()){
-            if(notloopEntry.getValue().getTerminalStructure()){
-                regAttribute(notloopEntry.getValue().getNodeName(),"string",notloopEntry.getValue().getTerminalAttribute());
+
+        for(Map.Entry<String,LanguageNodeProperty> toloopEntry:toloop.entrySet()){
+            try {
+                ts.addMethod(regListMethod(toloopEntry.getKey()));
             }
-            else if(not2Attr.contains(notloopEntry.getValue().getNodeName())){
-                regNormalMethod(notloopEntry.getValue().getNodeName());
-            }
-            else{
-                regAttribute(notloopEntry.getValue().getNodeName(),"bool");
+            catch (Throwable e){
+                System.out.println(e.getMessage());
             }
         }
 
-        for(Map.Entry<String,LanguageNodeProperty> toloopEntry:toloop.entrySet()){
-            ts.addMethod(regListMethod(toloopEntry.getKey()));
+        for(Map.Entry<String,LanguageNodeProperty> notloopEntry:notloop.entrySet()){
+            if(notloopEntry.getValue().getTerminalStructure()){
+                regAttribute(notloopEntry.getValue().getNodeName(),notloopEntry.getValue().getTerminalAttribute()[0]);
+            }
+            else{//(not2Attr.contains(notloopEntry.getValue().getNodeName()))
+                regNormalMethod(notloopEntry.getValue().getNodeName());
+            }
         }
+
         AnalysisAttrTerminal();
     }
 
     private void AnalysisAttrTerminal(){
         for(String attr:thisProp.getTerminalAttribute()){
-            regAttribute(attr,"bool");
+            regAttribute(attr ,attr);
         }
     }
 
     /**
-     * @param attrbute 1.添加对应名称的Boolean型全局变量
-     *                 2.初始化为false
+     * @param attrbute 1.添加对应名称的Word型全局变量
+     *                 2.初始化为null
      *                 3.在SetAttribute方法中添加赋值语句
-     * @param type 指定处理的属性类型，可以是数字形式、bool形式、字符串形式，以及什么样的扩展形式
-     * @param obj 如果不是处理bool形式的属性，那么可能需要在多个可选属性中选择一项进行处理，这时候传递可选属性用。如果没有obj数组的话，将
-     *            会用简单的赋值函数处理
+     * @param wordname 用于指示出现非终结符等价于终结符的时候的判断条件
      */
-    private void regAttribute(String attrbute,String type,String... obj) {
-        if(this.buildFiled.contains(attrbute))
-            return;
-        else{
-            this.buildFiled.add(attrbute);
-        }
+    //wordname用于指示出现非终结符等价于终结符的时候的判断条件
+    private void regAttribute(String attrbute,String... wordname){//
 
-        switch(type){
-            case "string":
-                ts.addField(String.class, attrbute, Modifier.PUBLIC);
-                regAttrSetterMethod(attrbute,obj==null||obj.length==0,obj);
-                break;
-            case "bool":
-                //默认按照Boolean处理，所以bool和default合在一起
-            default:
-                ts.addField(Boolean.class, attrbute, Modifier.PUBLIC);
+        try {
+            ts.addField(Word.class, attrbute, Modifier.PUBLIC);
 
-                Constructor.addStatement("$L=false", attrbute);
+            Constructor.addStatement("$L=null", attrbute);
 
-                SetAttribute.beginControlFlow("if($L.equals($S))","attr", attrbute);
-                SetAttribute.addStatement("$L=true", attrbute);
-                SetAttribute.endControlFlow();
-                break;
-        }
-    }
-
-    private void regAttrSetterMethod(String fieldName,boolean toSwitch,String... obj){
-        if(this.buildFiled.contains(fieldName))
-            return;
-        else{
-            this.buildFiled.add(fieldName);
-        }
-
-        ts.addField(String.class, fieldName, Modifier.PUBLIC);
-        Constructor.addStatement("$L=null", fieldName);
-
-        SetAttribute.beginControlFlow("if($L.equals($S))", "attr", fieldName);
-        if(toSwitch){
-            SetAttribute.beginControlFlow("switch(o)");
-            for(String s:obj){
-                SetAttribute.addStatement("case $L:",s);
-                SetAttribute.addStatement("$L=$L",fieldName,s);
-                SetAttribute.addStatement("break");
+            for(String switchname:wordname){
+                if(this.buildFiled.contains(switchname))
+                    continue;
+                else{
+                    this.buildFiled.add(switchname);
+                }
+                
+                SetAttribute.addCode("case $S:\n",switchname);
             }
-            SetAttribute.endControlFlow();
+            SetAttribute.addStatement("$L=o", attrbute);
+            SetAttribute.addStatement("break");
         }
-        else {
-            SetAttribute.addStatement("$L=o", fieldName);
+        catch (IllegalArgumentException e){
+            this.buildFiled.remove(wordname);
         }
-        SetAttribute.endControlFlow();
     }
 
     /**
@@ -161,13 +143,7 @@ public class makeBranchTreeNode {
         addChild.addStatement("Node$L=child",fieldName);
         addChild.endControlFlow();
 
-//        MethodSpec.Builder mb = MethodSpec.methodBuilder(fieldName);
-//        mb.returns(BranchTreeRoot.class);
-//        mb.addModifiers(Modifier.PUBLIC);
-//        mb.addStatement("return Node$L", fieldName);
-
         getChilds.addStatement("childs.add(Node$L)", fieldName);
-//        return mb.build();
     }
 
     /**
@@ -229,7 +205,8 @@ public class makeBranchTreeNode {
         builder[2].addAnnotation(Override.class);
         builder[2].addModifiers(Modifier.PUBLIC);
         builder[2].addParameter(String.class, "attr");
-        builder[2].addParameter(String.class, "o");
+        builder[2].addParameter(Word.class, "o");
+        builder[2].beginControlFlow("switch(attr)");
 
         return builder;
     }
