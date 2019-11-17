@@ -13,10 +13,10 @@ import java.util.*;
 
 public class makeBranchTreeNode {
     private JavaFile BranchTreeNode;
-    private TypeSpec.Builder ts,Start;
+    private TypeSpec.Builder ts, Start;
     private String baseDir = "src/main/java", packagePath = "Tree_Span.Impl", className;
     private MethodSpec.Builder[] OverrideFunctions;//继承方法
-    private MethodSpec.Builder addChild,getChilds,SetAttribute;
+    private MethodSpec.Builder addChild, getChilds, SetAttribute;
     private MethodSpec.Builder Constructor;//构造方法
     private LanguageNodeProperty thisProp;
     /**
@@ -32,13 +32,13 @@ public class makeBranchTreeNode {
         ts.addModifiers(Modifier.PUBLIC);
 
         OverrideFunctions = makeExtendMethodBuilder();
-        addChild=OverrideFunctions[0];
-        getChilds=OverrideFunctions[1];
-        SetAttribute=OverrideFunctions[2];
+        addChild = OverrideFunctions[0];
+        getChilds = OverrideFunctions[1];
+        SetAttribute = OverrideFunctions[2];
         Constructor = MethodSpec.constructorBuilder();
         Constructor.addModifiers(Modifier.PUBLIC);
-        this.thisProp=thisProp;
-        buildFiled=new HashSet<>();
+        this.thisProp = thisProp;
+        buildFiled = new HashSet<>();
 
 //        Start=TypeSpec.classBuilder(ClassName.get(S.class));
     }
@@ -55,29 +55,27 @@ public class makeBranchTreeNode {
         BranchTreeNode = JavaFile.builder(packagePath, ts.build()).build();
         BranchTreeNode.writeTo(new File(baseDir));
 
-        return new File(baseDir + '/' + packagePath.replaceAll("\\.", "/") + '/' +  className + ".java");
+        return new File(baseDir + '/' + packagePath.replaceAll("\\.", "/") + '/' + className + ".java");
     }
 
     public void AnalysisChildPropClass() {
         //需要建立列表的项
-        Map<String,LanguageNodeProperty> toloop=thisProp.getToLoopPropertyNode();
+        Map<String, LanguageNodeProperty> toloop = thisProp.getToLoopPropertyNode();
         //不需要建立列表的项
-        Map<String,LanguageNodeProperty> notloop=thisProp.getNotLoopPropertyNode();
+        Map<String, LanguageNodeProperty> notloop = thisProp.getNotLoopPropertyNode();
 
-        for(Map.Entry<String,LanguageNodeProperty> toloopEntry:toloop.entrySet()){
+        for (Map.Entry<String, LanguageNodeProperty> toloopEntry : toloop.entrySet()) {
             try {
                 ts.addMethod(regListMethod(toloopEntry.getKey()));
-            }
-            catch (Throwable e){
+            } catch (Throwable e) {
                 System.out.println(e.getMessage());
             }
         }
 
-        for(Map.Entry<String,LanguageNodeProperty> notloopEntry:notloop.entrySet()){
-            if(notloopEntry.getValue().getTerminalStructure()){
-                regAttribute(notloopEntry.getValue().getNodeName(),notloopEntry.getValue().getTerminalAttribute()[0]);
-            }
-            else{//(not2Attr.contains(notloopEntry.getValue().getNodeName()))
+        for (Map.Entry<String, LanguageNodeProperty> notloopEntry : notloop.entrySet()) {
+            if (notloopEntry.getValue().getTerminalStructure()) {
+                regAttribute(notloopEntry.getValue().getNodeName());
+            } else {//(not2Attr.contains(notloopEntry.getValue().getNodeName()))
                 regNormalMethod(notloopEntry.getValue().getNodeName());
             }
         }
@@ -85,9 +83,9 @@ public class makeBranchTreeNode {
         AnalysisAttrTerminal();
     }
 
-    private void AnalysisAttrTerminal(){
-        for(String attr:thisProp.getTerminalAttribute()){
-            regAttribute(attr ,attr);
+    private void AnalysisAttrTerminal() {
+        for (String attr : thisProp.getTerminalAttribute()) {
+            regAttribute(attr);
         }
     }
 
@@ -95,31 +93,30 @@ public class makeBranchTreeNode {
      * @param attrbute 1.添加对应名称的Word型全局变量
      *                 2.初始化为null
      *                 3.在SetAttribute方法中添加赋值语句
-     * @param wordname 用于指示出现非终结符等价于终结符的时候的判断条件
+     * @param //wordname 用于指示出现非终结符等价于终结符的时候的判断条件
      */
     //wordname用于指示出现非终结符等价于终结符的时候的判断条件
-    private void regAttribute(String attrbute,String... wordname){//
+    private void regAttribute(String attrbute) {//
+        if (this.buildFiled.contains(attrbute))
+            return;
+        else {
+            this.buildFiled.add(attrbute);
+        }
 
         try {
             ts.addField(Word.class, attrbute, Modifier.PUBLIC);
-
-            Constructor.addStatement("$L=null", attrbute);
-
-            for(String switchname:wordname){
-                if(this.buildFiled.contains(switchname))
-                    continue;
-                else{
-                    this.buildFiled.add(switchname);
-                }
-                
-                SetAttribute.addCode("case $S:\n",switchname);
-            }
-            SetAttribute.addStatement("$L=o", attrbute);
-            SetAttribute.addStatement("break");
+        } catch (IllegalArgumentException e) {
+            this.buildFiled.remove(attrbute);
+            return;
         }
-        catch (IllegalArgumentException e){
-            this.buildFiled.remove(wordname);
-        }
+        Constructor.addStatement("$L=null", attrbute);
+
+        SetAttribute.addCode("case $S:\n", attrbute);
+//        for (String switchname : wordname) {
+//            SetAttribute.addCode("case $S:\n", switchname);
+//        }
+        SetAttribute.addStatement("$L=o", attrbute);
+        SetAttribute.addStatement("break");
     }
 
     /**
@@ -128,19 +125,20 @@ public class makeBranchTreeNode {
      * 3.编辑TypeSpec，加入一个新变量
      * 4.在getChilds中加入对应的addAll代码
      * 5.加入一个get方法
+     *
      * @param fieldName
      * @return
      */
-    private void regNormalMethod(String fieldName){
-        if(this.buildFiled.contains(fieldName))
+    private void regNormalMethod(String fieldName) {
+        if (this.buildFiled.contains(fieldName))
             return;
-        else{
+        else {
             this.buildFiled.add(fieldName);
         }
 
         ts.addField(BranchTreeRoot.class, "Node" + fieldName, Modifier.PUBLIC);
-        addChild.beginControlFlow("if(child.getBranchName().equals($S))",fieldName);
-        addChild.addStatement("Node$L=child",fieldName);
+        addChild.beginControlFlow("if(child.getBranchName().equals($S))", fieldName);
+        addChild.addStatement("Node$L=child", fieldName);
         addChild.endControlFlow();
 
         getChilds.addStatement("childs.add(Node$L)", fieldName);
@@ -152,20 +150,21 @@ public class makeBranchTreeNode {
      * 3.编辑TypeSpec，加入一个新变量
      * 4.在getChilds中加入对应的addAll代码
      * 5.加入一个get方法
+     *
      * @param fieldName
      * @return
      */
     private MethodSpec regListMethod(String fieldName) {
-        if(this.buildFiled.contains(fieldName))
+        if (this.buildFiled.contains(fieldName))
             return null;
-        else{
+        else {
             this.buildFiled.add(fieldName);
         }
 
         ts.addField(ParameterizedTypeName.get(ArrayList.class, BranchTreeRoot.class), "List" + fieldName, Modifier.PRIVATE);
         Constructor.addStatement("List$L=new ArrayList<>()", fieldName);
-        addChild.beginControlFlow("if(child.getBranchName().equals($S))",fieldName);
-        addChild.addStatement("List$L.add(child)",fieldName);
+        addChild.beginControlFlow("if(child.getBranchName().equals($S))", fieldName);
+        addChild.addStatement("List$L.add(child)", fieldName);
         addChild.endControlFlow();
 
         MethodSpec.Builder mb = MethodSpec.methodBuilder(fieldName);

@@ -4,8 +4,8 @@ import Exceptions.ParserError.Impl.InputNotEmpty;
 import Exceptions.ParserError.Impl.StackNotEmpty;
 import Exceptions.ParserError.ParserBaseException;
 import Tree_Span.BranchTreeRoot;
+import Tree_Span.S;
 import Utils.RunampCompileASTClasses;
-import bean.KVEntryImpl;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Word;
 
@@ -35,7 +35,7 @@ public class Parser implements Serializable {
         analysisStack=new LinkedList<>();
         analysisStack.push("S");
         runAST=RunampCompileASTClasses.getInstance();
-        ASTRoot=runAST.ClassLoader("S");
+        ASTRoot=runAST.ClassLoader("Tree_Span.Impl.S");
         nodePop =new Stack<>();
     }
 
@@ -89,6 +89,6 @@ public class Parser implements Serializable {
     }
 
     public void Clear() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        ASTRoot=runAST.ClassLoader("S");
+        ASTRoot=new S();
     }
 }

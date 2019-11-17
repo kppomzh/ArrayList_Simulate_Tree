@@ -10,13 +10,14 @@ public class RuleInfo {
     private Set<String> firstSet,followSet;
     private List<Rule> rules;
     private Iterator<Rule> rulesIterator;
-    private boolean giveFollow;
+    private boolean giveFollow,equalTerminal;
 
     public RuleInfo(){
         firstSet=new HashSet<>();
         followSet=new HashSet<>();
         rules=new LinkedList<>();
         giveFollow=false;
+        equalTerminal=false;
     }
 
     public void addRule(Rule rule){
@@ -69,5 +70,13 @@ public class RuleInfo {
 
     public boolean isGiveFollow() {
         return giveFollow;
+    }
+
+    public boolean isEqualTerminal() {
+        return equalTerminal;
+    }
+
+    public void setEqualTerminal(boolean equalTerminal) {
+        this.equalTerminal = equalTerminal;
     }
 }

@@ -56,25 +56,33 @@ public class ASTPropertiesMaker {
         this.FormalStructureCheck(ri, thisProp, recursion, terminal);
 
         rm[toMakenonTerminal.indexOf(node)] = true;
+        ri.setEqualTerminal(thisProp.getTerminalStructure());
     }
 
     /**
      * 这里处理的是每条Rule中的符号的性质
-     *
+     * 除了常规的直接右递归和终结符之外，还有一点，当一条产生式中出现多个等价于终结符的非终结符时，这些非终结符所引用的终结符可能是同一个
+     * 此时需要一种新的结构来表示按照先后顺序压入终结符
+     * 如果设置标记，用linkedlist来保存，读取的时候直接通过位置来读取，这样可以解决类似于SQL语法中“表空间 表名 列名”这种完全展开的
+     * 表述状态的分析问题
+     * 但是当多个类似的产生式出现了交叉的时候，又是另一件难办的事。好在只要首终结符不一样的话也可以想办法区分一二。
      * @param nonTerminal
      * @param rule
      * @param thisProp
      */
     private boolean[] CountSingalRule(String nonTerminal, Rule rule, LanguageNodeProperty thisProp) throws InfinityRightRecursion {
-        //[0]表示这条文法中是否有右递归,[1]表示是不是只有一个终结符,[2]表示是否只有一个符号形式的终结符
+        //[0]表示这条文法中是否有右递归,[1]表示是不是只有一个终结符
         if(rule == Rule.epsilon){
             return new boolean[]{true,true};
         }
         boolean[] res = new boolean[2];
+//        List<Boolean> toList=new ArrayList<>();
+//        String firstNonTerminal=null;
 
         res[0] = nonTerminal.equals(rule.getLastMark());
 
-        for (String ident : rule.getRules()) {
+        for (int i = 0; i < rule.getRules().size(); i++) {
+            String ident=rule.getRules().get(i);
             if (propMap.containsKey(ident)) {
                 thisProp.addPropertyNode(propMap.get(ident));
             } else if (ruleMap.containsKey(ident)) {
@@ -91,7 +99,6 @@ public class ASTPropertiesMaker {
 
     /**
      * 这里处理每个非终结符中，产生式与产生式、文法符号与文法符号的关系性质
-     *
      * @param thisProp
      * @return
      */

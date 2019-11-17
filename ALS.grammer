@@ -74,8 +74,8 @@ LISTNAME:star
 SEQUENCENAME:NormalTAG
 CURSORNAME:NormalTAG
 
-Table_all_Name:TABLESPACENAME point TABLENAME
-List_all_Name:Table_all_Name point LISTNAME
+Table_all_Name:TABLESPACENAME . TABLENAME
+List_all_Name:Table_all_Name . LISTNAME
 
 NEW_TABLENAME:NormalTAG
 NEW_TABLENAME:ε
