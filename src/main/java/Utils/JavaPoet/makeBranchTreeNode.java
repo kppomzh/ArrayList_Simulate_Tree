@@ -1,5 +1,6 @@
 package Utils.JavaPoet;
 
+import Exceptions.ASTError.ASTBaseException;
 import Tree_Span.BranchTreeRoot;
 import Tree_Span.S;
 import bean.GrammerMaker.LanguageNodeProperty;
@@ -16,7 +17,7 @@ public class makeBranchTreeNode {
     private TypeSpec.Builder ts, Start;
     private String baseDir = "src/main/java", packagePath = "Tree_Span.Impl", className;
     private MethodSpec.Builder[] OverrideFunctions;//继承方法
-    private MethodSpec.Builder addChild, getChilds, SetAttribute;
+    private MethodSpec.Builder addChild, getChilds, SetAttribute, GetAttribute;
     private MethodSpec.Builder Constructor;//构造方法
     private LanguageNodeProperty thisProp;
     /**
@@ -35,8 +36,10 @@ public class makeBranchTreeNode {
         addChild = OverrideFunctions[0];
         getChilds = OverrideFunctions[1];
         SetAttribute = OverrideFunctions[2];
+        GetAttribute = OverrideFunctions[3];
         Constructor = MethodSpec.constructorBuilder();
         Constructor.addModifiers(Modifier.PUBLIC);
+        Constructor.addStatement("branchName=$S",className);
         this.thisProp = thisProp;
         buildFiled = new HashSet<>();
 
@@ -47,6 +50,10 @@ public class makeBranchTreeNode {
         getChilds.addStatement("return childs");
         ts.addMethod(Constructor.build());
         SetAttribute.endControlFlow();
+//        GetAttribute.addCode("default:\n");
+//        GetAttribute.addStatement("throw new ASTBaseException(attr)");
+        GetAttribute.endControlFlow();
+        GetAttribute.addStatement("return res");
 
         for (int i = 0; i < OverrideFunctions.length; i++) {
             ts.addMethod(OverrideFunctions[i].build());
@@ -66,7 +73,7 @@ public class makeBranchTreeNode {
 
         for (Map.Entry<String, LanguageNodeProperty> toloopEntry : toloop.entrySet()) {
             try {
-                ts.addMethod(regListMethod(toloopEntry.getKey()));
+                regListMethod(toloopEntry.getKey());
             } catch (Throwable e) {
                 System.out.println(e.getMessage());
             }
@@ -90,15 +97,14 @@ public class makeBranchTreeNode {
     }
 
     /**
-     * @param attrbute 1.添加对应名称的Word型全局变量
-     *                 2.初始化为null
-     *                 3.在SetAttribute方法中添加赋值语句
+     * @param attrbute   1.添加对应名称的Word型全局变量
+     *                   2.初始化为null
+     *                   3.在SetAttribute方法中添加赋值语句
      * @param //wordname 用于指示出现非终结符等价于终结符的时候的判断条件
      */
     //wordname用于指示出现非终结符等价于终结符的时候的判断条件
     private void regAttribute(String attrbute) {//
-        if (this.buildFiled.contains(attrbute))
-            return;
+        if (this.buildFiled.contains(attrbute)) return;
         else {
             this.buildFiled.add(attrbute);
         }
@@ -112,11 +118,11 @@ public class makeBranchTreeNode {
         Constructor.addStatement("$L=null", attrbute);
 
         SetAttribute.addCode("case $S:\n", attrbute);
-//        for (String switchname : wordname) {
-//            SetAttribute.addCode("case $S:\n", switchname);
-//        }
         SetAttribute.addStatement("$L=o", attrbute);
         SetAttribute.addStatement("break");
+        GetAttribute.addCode("case $S:\n", attrbute);
+        GetAttribute.addStatement("res=$L", attrbute);
+        GetAttribute.addStatement("break");
     }
 
     /**
@@ -130,8 +136,7 @@ public class makeBranchTreeNode {
      * @return
      */
     private void regNormalMethod(String fieldName) {
-        if (this.buildFiled.contains(fieldName))
-            return;
+        if (this.buildFiled.contains(fieldName)) return;
         else {
             this.buildFiled.add(fieldName);
         }
@@ -141,7 +146,13 @@ public class makeBranchTreeNode {
         addChild.addStatement("Node$L=child", fieldName);
         addChild.endControlFlow();
 
+        MethodSpec.Builder mb = MethodSpec.methodBuilder("get"+fieldName);
+        mb.returns(BranchTreeRoot.class);
+        mb.addModifiers(Modifier.PUBLIC);
+        mb.addStatement("return Node$L", fieldName);
+
         getChilds.addStatement("childs.add(Node$L)", fieldName);
+        ts.addMethod(mb.build());
     }
 
     /**
@@ -154,9 +165,8 @@ public class makeBranchTreeNode {
      * @param fieldName
      * @return
      */
-    private MethodSpec regListMethod(String fieldName) {
-        if (this.buildFiled.contains(fieldName))
-            return null;
+    private void regListMethod(String fieldName) {
+        if (this.buildFiled.contains(fieldName)) return;
         else {
             this.buildFiled.add(fieldName);
         }
@@ -167,13 +177,13 @@ public class makeBranchTreeNode {
         addChild.addStatement("List$L.add(child)", fieldName);
         addChild.endControlFlow();
 
-        MethodSpec.Builder mb = MethodSpec.methodBuilder(fieldName);
+        MethodSpec.Builder mb = MethodSpec.methodBuilder("get"+fieldName);
         mb.returns(ParameterizedTypeName.get(List.class, BranchTreeRoot.class));
         mb.addModifiers(Modifier.PUBLIC);
         mb.addStatement("return List$L", fieldName);
 
         getChilds.addStatement("childs.addAll(List$L)", fieldName);
-        return mb.build();
+        ts.addMethod(mb.build());
     }
 
     /**
@@ -184,7 +194,7 @@ public class makeBranchTreeNode {
      * addChild则应该根据不同的类型分开添加到不同的list或者
      */
     public MethodSpec.Builder[] makeExtendMethodBuilder() {
-        MethodSpec.Builder[] builder = new MethodSpec.Builder[3];
+        MethodSpec.Builder[] builder = new MethodSpec.Builder[4];
 
         builder[0] = MethodSpec.methodBuilder("addChild");
         builder[0].returns(TypeName.VOID);
@@ -197,7 +207,6 @@ public class makeBranchTreeNode {
         builder[1].addAnnotation(Override.class);
         builder[1].addModifiers(Modifier.PUBLIC);
         builder[1].addStatement("$T childs=new $T<>()", ParameterizedTypeName.get(Collection.class, BranchTreeRoot.class), ParameterizedTypeName.get(LinkedList.class));
-//        builder[1].addStatement("")
 
         builder[2] = MethodSpec.methodBuilder("SetAttribute");
         builder[2].returns(TypeName.VOID);
@@ -207,6 +216,14 @@ public class makeBranchTreeNode {
         builder[2].addParameter(Word.class, "o");
         builder[2].beginControlFlow("switch(attr)");
 
+        builder[3] = MethodSpec.methodBuilder("GetAttribute");
+        builder[3].returns(Word.class);
+        builder[3].addAnnotation(Override.class);
+        builder[3].addModifiers(Modifier.PUBLIC);
+        builder[3].addParameter(String.class, "attr");
+        builder[3].addException(ASTBaseException.class);
+        builder[3].addStatement("Word res=null");
+        builder[3].beginControlFlow("switch(attr)");
         return builder;
     }
 }

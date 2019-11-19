@@ -101,7 +101,7 @@ public class ReaderDemo {
         //获取类加载器
         ClassLoader classLoader = Class.class.getClassLoader();
         Class<?> cls = classLoader.loadClass(classname);
-        Object obj = cls.newInstance();
+        Object obj = cls.getConstructor().newInstance();
 
         //调用方法名称
         String methodName = "addChild";

@@ -6,7 +6,7 @@ import java.util.Collection;
 
 public class S extends BranchTreeRoot {
     public S(){
-
+        branchName="S";
     }
     @Override
     public void addChild(BranchTreeRoot child) {
@@ -14,12 +14,17 @@ public class S extends BranchTreeRoot {
     }
 
     @Override
-    protected Collection<? extends BranchTreeRoot> getChilds() {
+    public Collection<? extends BranchTreeRoot> getChilds() {
         return null;
     }
 
     @Override
-    protected void SetAttribute(String attr, Word o) {
+    public void SetAttribute(String attr, Word o) {
 
+    }
+
+    @Override
+    public Word GetAttribute(String attr) {
+        return null;
     }
 }

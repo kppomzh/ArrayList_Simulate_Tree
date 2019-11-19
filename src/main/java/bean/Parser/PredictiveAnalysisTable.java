@@ -60,4 +60,8 @@ public class PredictiveAnalysisTable implements Serializable {
             throw new NullGrammerBranch(Terminal);
         }
     }
+
+    public boolean inTerminal(String s) {
+        return TerminalMap.containsKey(s);
+    }
 }

@@ -1,5 +1,6 @@
 package Tree_Span;
 
+import Exceptions.ASTError.ASTBaseException;
 import bean.Word;
 
 import java.io.Serializable;
@@ -11,20 +12,22 @@ import java.util.Collection;
  * 执行计划生成的时候依次向下按照深度遍历搜索所有信息
  */
 public abstract class BranchTreeRoot implements Serializable {
-    private String branchName;
+    protected String branchName;
 
     public abstract void addChild(BranchTreeRoot child);
 
-    protected abstract Collection<? extends BranchTreeRoot> getChilds();
+    public abstract Collection<? extends BranchTreeRoot> getChilds();
 
-    protected abstract void SetAttribute(String attr, Word o);
+    public abstract void SetAttribute(String attr, Word o);
+
+    public abstract Word GetAttribute(String attr) throws ASTBaseException;
 
     public String getBranchName() {
         return branchName;
     }
 
-    public void setBranchName(String branchName) {
-        this.branchName = branchName;
-    }
+//    public void setBranchName(String branchName) {
+//        this.branchName = branchName;
+//    }
 
 }

@@ -59,12 +59,17 @@ public class Word extends BranchTreeRoot {
     }
 
     @Override
-    protected Collection<? extends BranchTreeRoot> getChilds() {
+    public Collection<? extends BranchTreeRoot> getChilds() {
         return null;
     }
 
     @Override
-    protected void SetAttribute(String attr, Word o) {
+    public void SetAttribute(String attr, Word o) {
 
+    }
+
+    @Override
+    public Word GetAttribute(String attr) {
+        return this;
     }
 }

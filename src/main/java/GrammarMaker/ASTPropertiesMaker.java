@@ -44,14 +44,17 @@ public class ASTPropertiesMaker {
         propMap.put(node, thisProp);
 
         RuleInfo ri = ruleMap.get(node);
-        recursion = new boolean[ri.getRules().size()];
-        terminal = new boolean[ri.getRules().size()];
+        int boolSize=ri.isGiveFollow()?ri.getRules().size()-1:ri.getRules().size();
+        recursion = new boolean[boolSize];
+        terminal = new boolean[boolSize];
         int loop = 0;
         while (ri.hasNext()) {
             boolean temp[] = CountSingalRule(node, ri.getNextRule(), thisProp);
-            recursion[loop] = temp[0];
-            terminal[loop] = temp[1];
-            loop++;
+            if(temp!=null){
+                recursion[loop] = temp[0];
+                terminal[loop] = temp[1];
+                loop++;
+            }
         }
         this.FormalStructureCheck(ri, thisProp, recursion, terminal);
 
@@ -73,7 +76,7 @@ public class ASTPropertiesMaker {
     private boolean[] CountSingalRule(String nonTerminal, Rule rule, LanguageNodeProperty thisProp) throws InfinityRightRecursion {
         //[0]表示这条文法中是否有右递归,[1]表示是不是只有一个终结符
         if(rule == Rule.epsilon){
-            return new boolean[]{true,true};
+            return null;
         }
         boolean[] res = new boolean[2];
 //        List<Boolean> toList=new ArrayList<>();
