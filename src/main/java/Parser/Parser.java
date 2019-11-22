@@ -38,8 +38,9 @@ public class Parser implements Serializable {
         analysisStack = new LinkedList<>();
         analysisStack.push("S");
         runAST = RunampCompileASTClasses.getInstance();
-        ASTRoot = runAST.ClassLoader("Tree_Span.Impl.S");
+        ASTRoot = runAST.ClassLoader("S");
         nodePop = new Stack<>();
+        analysisStackFrame = new Stack<>();
     }
 
     public BranchTreeRoot Controller(LinkedList<Word> words) throws ParserBaseException, ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
@@ -78,8 +79,10 @@ public class Parser implements Serializable {
                             nowTree = childNode;
 
                             analysisStack.pop();
-                            while (!nextListRule.isEmpty()) {
-                                analysisStack.push(nextListRule.remove(nextListRule.size() - 1));
+                            int i = nextListRule.size() - 1;
+                            while (i >= 0) {
+                                analysisStack.push(nextListRule.get(i));
+                                i--;
                             }
                         }
                     }
@@ -100,5 +103,14 @@ public class Parser implements Serializable {
 
     public void Clear() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
         ASTRoot = runAST.ClassLoader("Tree_Span.Impl.S");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (!o.getClass().getName().equals(this.getClass().getName())) return false;
+        Parser p = (Parser) o;
+
+        return p.pat.equals(this.pat);
     }
 }

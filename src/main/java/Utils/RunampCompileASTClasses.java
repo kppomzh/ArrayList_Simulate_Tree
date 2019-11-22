@@ -75,7 +75,7 @@ public class RunampCompileASTClasses implements Serializable {
 
     public BranchTreeRoot ClassLoader(String className) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException, InstantiationException {
         try {
-            return (BranchTreeRoot) Class.forName(className).getConstructor().newInstance();
+            return (BranchTreeRoot) Class.forName("Tree_Span.Impl."+className).getConstructor().newInstance();
         }
         catch (NoClassDefFoundError e){
             return new S();

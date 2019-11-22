@@ -9,14 +9,15 @@ import java.util.List;
  */
 public class Rule implements Serializable {
     public final static Rule epsilon;
+
     static {
-        epsilon=new Rule();
+        epsilon = new Rule();
         epsilon.setRules(List.of("ε"));
     }
 
     private List<String> rules;
 
-    public Rule(){
+    public Rule() {
 
     }
 
@@ -25,7 +26,7 @@ public class Rule implements Serializable {
     }
 
     public String getLastMark() {
-        return rules.get(rules.size()-1);
+        return rules.get(rules.size() - 1);
     }
 
     public List<String> getRules() {
@@ -36,7 +37,16 @@ public class Rule implements Serializable {
         this.rules = rules;
     }
 
-    public int length(){
+    public int length() {
         return rules.size();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (!o.getClass().getName().equals(this.getClass().getName())) return false;
+        Rule r = (Rule) o;
+
+        return r.rules.equals(this.rules);
     }
 }

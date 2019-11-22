@@ -37,16 +37,16 @@ public class PredictiveAnalysisTable implements Serializable {
         }
     }
 
-    public void setDriverTable(String terminal,String nonterminal,Rule r) throws LeftCommonFactorConflict {
+    public void setDriverTable(String terminal,String nonTerminal,Rule r) throws LeftCommonFactorConflict {
         if(terminal.equals("ε")){
             return;
         }
-        if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)]==null) {
-            driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)] = r;
+        if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)]==null) {
+            driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)] = r;
         }
         else{
-            throw new LeftCommonFactorConflict(terminal,nonterminal,r,
-                    driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonterminal)]);
+            throw new LeftCommonFactorConflict(terminal,nonTerminal,r,
+                    driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)]);
         }
     }
 
@@ -63,5 +63,18 @@ public class PredictiveAnalysisTable implements Serializable {
 
     public boolean inTerminal(String s) {
         return TerminalMap.containsKey(s);
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o==null)
+            return false;
+        if(!o.getClass().getName().equals(this.getClass().getName()))
+            return false;
+        PredictiveAnalysisTable p=(PredictiveAnalysisTable) o;
+
+        return p.nonTerminalMap.equals(this.nonTerminalMap) &&
+                p.TerminalMap.equals(this.TerminalMap) &&
+                Arrays.deepEquals(p.driverTable, this.driverTable);
     }
 }

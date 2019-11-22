@@ -37,6 +37,7 @@ public class Reader {
      */
     private Set<String> ruleNameSet,keyNameSet;
     private Collection<String> markCollection;
+    private LinkedList<String> toCountCollection;
 
     //get方法需要用到的全局变量
     private PredictiveAnalysisTable analysisTable;
@@ -98,7 +99,8 @@ public class Reader {
             makeRule(grammerReader.makeConbinationGrammer(grammerReader.getLinesinFile(filename+".grammer")));
         }
 
-        countFirstCollection("S",new HashSet<>());
+        toCountCollection=new LinkedList<>(ruleNameSet);
+        TraverseNonTerminals();
         countFollowCollection();
 
         analysisTable=makeMap();
@@ -149,7 +151,7 @@ public class Reader {
                 }
                 else{
                     ptable.setDriverTable(rule.getFirstMark(), nonterminal, rule);
-                    break;
+                    continue;
                 }
 
                 for (String terminal : tempset) {
@@ -198,28 +200,32 @@ public class Reader {
         }
     }
 
+    private void TraverseNonTerminals(){
+        while(!toCountCollection.isEmpty()){
+            countFirstCollection(toCountCollection.getFirst(),new HashSet<>());
+        }
+    }
     /**
-     * 计算first集
+     * 计算一个终结符的first集
      */
     private void countFirstCollection(String s,Set<String> stopValue){
+        toCountCollection.remove(s);
         if(stopValue.contains(s)){
             return;
         }
 
-        for(String child:this.ruleNameSet){
-            RuleInfo ri=ruleMap.get(child);
-            while(ri.hasNext()){
-                String first=ri.getNextRule().getFirstMark();
-                if(this.keyNameSet.contains(first)){
-                    ri.addFirstSet(first);
+        RuleInfo ri=ruleMap.get(s);
+        while(ri.hasNext()){
+            String first=ri.getNextRule().getFirstMark();
+            if(this.keyNameSet.contains(first)){
+                ri.addFirstSet(first);
+            }
+            else {
+                if(ruleMap.get(first).getFirstSet().size()==0){
+                    stopValue.add(s);
+                    countFirstCollection(first,stopValue);
                 }
-                else {
-                    if(ruleMap.get(first).getFirstSet().size()==0){
-                        stopValue.add(s);
-                        countFirstCollection(first,stopValue);
-                    }
-                    ri.addFirstSet(ruleMap.get(first).getFirstSet());
-                }
+                ri.addFirstSet(ruleMap.get(first).getFirstSet());
             }
         }
     }
@@ -228,6 +234,7 @@ public class Reader {
      * 计算follow集
      */
     private void countFollowCollection() throws FollowDebugException {
+        ruleMap.get("S").addTerminaltoFollowSet("#");
         FollowCollectionMaker maker=new FollowCollectionMaker(ruleMap,ruleNameSet);
         ruleMap=maker.countFollowCollection();
     }

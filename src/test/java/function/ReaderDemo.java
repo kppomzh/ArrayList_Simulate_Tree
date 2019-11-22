@@ -1,26 +1,27 @@
 package function;
 
 import Exceptions.GrammerMakerError.GrammerBaseException;
-import Exceptions.GrammerMakerError.Impl.*;
+import Exceptions.GrammerMakerError.Impl.FollowDebugException;
+import Exceptions.GrammerMakerError.Impl.GrammerUndefined;
+import Exceptions.LexError.LexBaseException;
+import Exceptions.ParserError.ParserBaseException;
 import GrammarMaker.Reader;
 import Lex.Lex;
 import Parser.Parser;
-import Tree_Span.S;
+import Tree_Span.BranchTreeRoot;
 import Utils.RunampCompileASTClasses;
 import org.junit.Test;
 
-import javax.tools.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 //import static sun.tools.jconsole.Messages.CLASS_PATH;
 
 public class ReaderDemo {
     @Test
-    public void main() throws IOException, GrammerBaseException, GrammerUndefined, ClassNotFoundException, FollowDebugException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public void main() throws IOException, GrammerBaseException, GrammerUndefined, ClassNotFoundException, FollowDebugException, IllegalAccessException, InvocationTargetException, InstantiationException, LexBaseException, ParserBaseException {
         Reader reader=new Reader("D:\\Document\\OneDrive\\CodeRepo\\ASL数据库项目\\ArrayList_Simulate_Tree\\");
         reader.LexGenerate();
         reader.ParserGenerate();
@@ -35,57 +36,27 @@ public class ReaderDemo {
 
         lexStream.writeObject(lex);
         parserStream.writeObject(parser);
-        lex=null;
-        parser=null;
+
+        BranchTreeRoot root=parser.Controller(lex.getWords("1+abs(6*8/7)"));
+//        System.out.println(LanguageTreePrinter.printf(root,0));
 
         ObjectInputStream lexinput=new ObjectInputStream(new FileInputStream(new File("lex.grammarclass")));
         ObjectInputStream parserinput=new ObjectInputStream(new FileInputStream(new File("parser.grammarclass")));
 
-        lex=(Lex)lexinput.readObject();
-        parser=(Parser)parserinput.readObject();
-
-        if(lex!=null&&parser!=null){
-            System.out.println(true);
-        }
-        else{
-            System.out.println(false);
-        }
+        System.out.println("lex sample " + lex.equals(lexinput.readObject()));
+        System.out.println("parser sample " + parser.equals(parserinput.readObject()));
     }
 
     @Test
-    public void JavaCompired() throws IOException {
-        Compireing(new File("D:\\Document\\OneDrive\\CodeRepo\\ASL数据库项目\\ArrayList_Simulate_Tree\\src\\main\\java\\Tree_Span\\Impl").listFiles());
-    }
-    /**
-     * @param files
-     * java文件实时编译demo，以后可以据此修改方法
-     */
-    private static void Compireing(File... files) throws IOException {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<JavaFileObject>();
-        StandardJavaFileManager manager = compiler.getStandardFileManager(diagnostics, null, null);
-        Iterable<? extends JavaFileObject> it = manager.getJavaFileObjects(files);
+    public void runSQL() throws IOException, ClassNotFoundException, LexBaseException, InstantiationException, IllegalAccessException, ParserBaseException, InvocationTargetException {
+        ObjectInputStream lexinput=new ObjectInputStream(new FileInputStream(new File("lex.grammarclass")));
+        ObjectInputStream parserinput=new ObjectInputStream(new FileInputStream(new File("parser.grammarclass")));
 
-        ArrayList<String> ops = new ArrayList<String>();
-        ops.add("-classpath");
-        StringBuilder classpath=new StringBuilder();
-        classpath.append(java.net.URLDecoder.decode(new S().getClass().getResource("").getFile(),"utf-8"));
-        classpath.delete(classpath.indexOf("Tree_Span/"),classpath.length()-1);
-        classpath.deleteCharAt(0);
-        classpath.insert(0,';');
-        classpath.insert(0,java.net.URLDecoder.decode(new S().getClass().getResource("/").getFile(),"utf-8"));
-        classpath.deleteCharAt(0);
-        ops.add(classpath.toString());
-        ops.add("-sourcepath");
-        ops.add(new S().getClass().getResource("/").getPath().
-                replace("target/test-classes/","src/main/java/"));
+        Lex lex=(Lex)lexinput.readObject();
+        Parser parser=(Parser)parserinput.readObject();
 
-        JavaCompiler.CompilationTask task =compiler.getTask(null, manager, diagnostics, ops, null, it);
-
-        if(task.call()) {
-            System.out.println(compiler.name());
-        }
-        manager.close();
+        BranchTreeRoot root=parser.Controller(lex.getWords("1+abs(6*8/7)"));
+        System.out.println(root.getBranchName());
     }
 
     /**

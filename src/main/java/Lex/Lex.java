@@ -27,17 +27,17 @@ public class Lex implements Serializable {
         tokenSet=set;
     }
 
-    public String[] Pretreatment(String allSQLinOne){
-        String[] allSQLs=allSQLinOne.split(";");
+    public String[] Pretreatment(String allStatmentinOne){
+        String[] allStatments=allStatmentinOne.split(";");
 
-        for (int i = 0; i < allSQLs.length; i++) {
-            allSQLs[i]=allSQLs[i].strip();
+        for (int i = 0; i < allStatments.length; i++) {
+            allStatments[i]=allStatments[i].strip();
         }
 
-        return allSQLs;
+        return allStatments;
     }
 
-    public List<Word> getWords(String SQL) throws LexBaseException {
+    public LinkedList<Word> getWords(String SQL) throws LexBaseException {
         thisSQL = SQL;
         LinkedList<Word> words = new LinkedList<>();
         words.add(new Word(null,0,0));
@@ -77,6 +77,10 @@ public class Lex implements Serializable {
         }
 
         words.removeFirst();
+        nowindex=0;
+        line = 0;
+        list = 0;
+        nowStatus=0;
         return words;
     }
 
@@ -302,5 +306,16 @@ public class Lex implements Serializable {
         }else{
             throw new TerminatorNotFoundException(line,list,sb.toString().toCharArray());
         }
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(o==null)
+            return false;
+        if(!o.getClass().getName().equals(this.getClass().getName()))
+            return false;
+        Lex l=(Lex) o;
+
+        return this.tokenSet.equals(l.tokenSet);
     }
 }

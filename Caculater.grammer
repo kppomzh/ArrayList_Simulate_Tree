@@ -1,0 +1,19 @@
+S:Math
+Math:T E
+E:plus T E
+E:minus T E
+E:ε
+T:F I
+I:multi F I
+I:div F I
+I:ε
+F:( Math )
+F:abs F
+F:Quantifier
+
+Quantifier:DOUBLE
+Quantifier:INTEGER
+plus:+
+minus:-
+multi:*
+div:/

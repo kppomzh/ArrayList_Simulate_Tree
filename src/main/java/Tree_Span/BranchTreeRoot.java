@@ -5,6 +5,8 @@ import bean.Word;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 生成树
@@ -13,6 +15,7 @@ import java.util.Collection;
  */
 public abstract class BranchTreeRoot implements Serializable {
     protected String branchName;
+    protected List<String> Attributes=new LinkedList<>();
 
     public abstract void addChild(BranchTreeRoot child);
 
@@ -21,6 +24,10 @@ public abstract class BranchTreeRoot implements Serializable {
     public abstract void SetAttribute(String attr, Word o);
 
     public abstract Word GetAttribute(String attr) throws ASTBaseException;
+
+    public List<String> GetAttributes(){
+        return Attributes;
+    }
 
     public String getBranchName() {
         return branchName;
