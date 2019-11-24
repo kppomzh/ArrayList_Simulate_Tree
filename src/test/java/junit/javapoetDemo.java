@@ -1,6 +1,6 @@
 package junit;
 
-import Tree_Span.S;
+import Tree_Span.StartRoot;
 import Utils.JavaPoet.makeBranchTreeNode;
 import bean.GrammerMaker.LanguageNodeProperty;
 import bean.Word;
@@ -8,12 +8,9 @@ import com.squareup.javapoet.*;
 import org.junit.Test;
 
 import javax.lang.model.element.Modifier;
-import javax.lang.model.type.TypeMirror;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 public class javapoetDemo {
     @Test
@@ -53,7 +50,7 @@ public class javapoetDemo {
 
         TypeSpec ts;
 //        TypeSpec.Builder tbs=TypeSpec.classBuilder("abc");
-        TypeSpec.Builder tbs=TypeSpec.classBuilder(ClassName.get(S.class));
+        TypeSpec.Builder tbs=TypeSpec.classBuilder(ClassName.get(StartRoot.class));
 
         tbs.addField(Word.class,"testWord",Modifier.PUBLIC);
         ts=tbs.build();

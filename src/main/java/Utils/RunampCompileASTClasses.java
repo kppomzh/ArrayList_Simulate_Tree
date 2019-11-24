@@ -3,7 +3,7 @@ package Utils;
 import Exceptions.GrammerMakerError.GrammerBaseException;
 import Exceptions.GrammerMakerError.Impl.CompileException;
 import Tree_Span.BranchTreeRoot;
-import Tree_Span.S;
+import Tree_Span.StartRoot;
 
 import javax.tools.*;
 import java.io.File;
@@ -21,9 +21,9 @@ public class RunampCompileASTClasses implements Serializable {
 //    private URLClassLoader loader;
 
     private RunampCompileASTClasses() throws UnsupportedEncodingException, MalformedURLException {
-        classpath1=java.net.URLDecoder.decode(new Tree_Span.S().getClass().getResource("").getFile(),"utf-8");
+        classpath1=java.net.URLDecoder.decode(new StartRoot().getClass().getResource("").getFile(),"utf-8");
         classpath1=classpath1.substring(1,classpath1.indexOf("Tree_Span/"));
-        classpath2=java.net.URLDecoder.decode(new Tree_Span.S().getClass().getResource("/").getFile(),"utf-8").substring(1);
+        classpath2=java.net.URLDecoder.decode(new StartRoot().getClass().getResource("/").getFile(),"utf-8").substring(1);
 //        basePath=classpath2.replace("target/test-classes/","src/main/java/Tree_Span/ImplClasses/");
 //        loader=ClassLoader.getSystemClassLoader();
 //        loader=new URLClassLoader(new URL[]{new URL("file://"+basePath+"Tree_Span/Impl/")},this.getClass().getClassLoader());
@@ -78,9 +78,9 @@ public class RunampCompileASTClasses implements Serializable {
             return (BranchTreeRoot) Class.forName("Tree_Span.Impl."+className).getConstructor().newInstance();
         }
         catch (NoClassDefFoundError e){
-            return new S();
+            return new StartRoot();
         } catch (NoSuchMethodException e) {
-            return new S();
+            return new StartRoot();
         }
     }
 

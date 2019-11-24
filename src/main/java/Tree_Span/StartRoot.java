@@ -4,13 +4,12 @@ import bean.Word;
 
 import java.util.Collection;
 
-public class S extends BranchTreeRoot {
-    public S(){
-        branchName="S";
-    }
+public class StartRoot extends BranchTreeRoot {
+    BranchTreeRoot truestart;
+
     @Override
     public void addChild(BranchTreeRoot child) {
-
+        truestart=child;
     }
 
     @Override
@@ -26,5 +25,11 @@ public class S extends BranchTreeRoot {
     @Override
     public Word GetAttribute(String attr) {
         return null;
+    }
+
+    public BranchTreeRoot getRoot(){
+        BranchTreeRoot res=truestart;
+        truestart=null;
+        return res;
     }
 }

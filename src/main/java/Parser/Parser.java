@@ -4,7 +4,7 @@ import Exceptions.ParserError.Impl.InputNotEmpty;
 import Exceptions.ParserError.Impl.StackNotEmpty;
 import Exceptions.ParserError.ParserBaseException;
 import Tree_Span.BranchTreeRoot;
-import Tree_Span.S;
+import Tree_Span.StartRoot;
 import Utils.RunampCompileASTClasses;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Word;
@@ -29,7 +29,7 @@ public class Parser implements Serializable {
     private LinkedList<String> analysisStack;
     //RunampCompileASTClasses类没有办法序列化，所以这里到底怎么引入这个类是个问题，暂时也没想到好的解决方案
     private RunampCompileASTClasses runAST;
-    private BranchTreeRoot ASTRoot;
+    private StartRoot ASTRoot;
     private Stack<BranchTreeRoot> nodePop;
     private Stack<Integer> analysisStackFrame;
 
@@ -38,7 +38,7 @@ public class Parser implements Serializable {
         analysisStack = new LinkedList<>();
         analysisStack.push("S");
         runAST = RunampCompileASTClasses.getInstance();
-        ASTRoot = runAST.ClassLoader("S");
+        ASTRoot = new StartRoot();
         nodePop = new Stack<>();
         analysisStackFrame = new Stack<>();
     }
@@ -66,28 +66,31 @@ public class Parser implements Serializable {
                     nowTree.SetAttribute(analysisStack.pop(), words.pop());
                 } else {
                     nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst());
-                    if (nextListRule.size() == 1 && pat.inTerminal(nextListRule.get(0))) {
-                        nowTree.SetAttribute(analysisStack.pop(), words.pop());
+                    if (nextListRule.get(0).equals("ε")) {
+                        analysisStack.pop();
+                    } else if (nextListRule.size() == 1 && pat.inTerminal(nextListRule.get(0))) {
+                        nowTree.SetAttribute(nextListRule.get(0), words.pop());
+                        analysisStack.pop();
                     } else {
-                        if (nextListRule.get(0).equals("ε")) {
-                            analysisStack.pop();
-                        } else {
-                            BranchTreeRoot childNode = runAST.ClassLoader(analysisStack.getFirst());
-                            nowTree.addChild(childNode);
-                            nodePop.push(nowTree);
-                            analysisStackFrame.push(analysisStack.size());
-                            nowTree = childNode;
+                        //这种情况说明遇到了不能直接转化成一个终结符的非终结符，
+                        //所以接下来将会把这个非终结符在这里对应的文法产生式右部的所有符号逆序压栈
+                        //
+                        String childClass=analysisStack.pop();
+                        analysisStackFrame.push(analysisStack.size());
+                        nodePop.push(nowTree);
 
-                            analysisStack.pop();
-                            int i = nextListRule.size() - 1;
-                            while (i >= 0) {
-                                analysisStack.push(nextListRule.get(i));
-                                i--;
-                            }
+                        int i = nextListRule.size() - 1;
+                        while (i >= 0) {
+                            analysisStack.push(nextListRule.get(i));
+                            i--;
                         }
+
+                        BranchTreeRoot childNode = runAST.ClassLoader(childClass);
+                        nowTree.addChild(childNode);
+                        nowTree = childNode;
                     }
                 }
-                if (analysisStack.size() < analysisStackFrame.peek()) {
+                if (analysisStack.size() == analysisStackFrame.peek()) {
                     nowTree = nodePop.pop();
                     analysisStackFrame.pop();
                 }
@@ -98,11 +101,7 @@ public class Parser implements Serializable {
         }
 
         //通过analysisStack找到对应的AST类，但是现在这个工作还暂时不能开展，需要等待AST类的自动生成代码确定AST结构之后再进行。
-        return ASTRoot;
-    }
-
-    public void Clear() throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        ASTRoot = runAST.ClassLoader("Tree_Span.Impl.S");
+        return ASTRoot.getRoot();
     }
 
     @Override

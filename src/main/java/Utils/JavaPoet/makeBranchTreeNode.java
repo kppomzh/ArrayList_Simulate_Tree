@@ -2,7 +2,6 @@ package Utils.JavaPoet;
 
 import Exceptions.ASTError.ASTBaseException;
 import Tree_Span.BranchTreeRoot;
-import Tree_Span.S;
 import bean.GrammerMaker.LanguageNodeProperty;
 import bean.Word;
 import com.squareup.javapoet.*;
@@ -81,7 +80,7 @@ public class makeBranchTreeNode {
 
         for (Map.Entry<String, LanguageNodeProperty> notloopEntry : notloop.entrySet()) {
             if (notloopEntry.getValue().getTerminalStructure()) {
-                regAttribute(notloopEntry.getValue().getNodeName());
+                regAttribute(notloopEntry.getValue().getNodeName(),notloopEntry.getValue().getTerminalAttribute());
             } else {//(not2Attr.contains(notloopEntry.getValue().getNodeName()))
                 regNormalMethod(notloopEntry.getValue().getNodeName());
             }
@@ -92,7 +91,7 @@ public class makeBranchTreeNode {
 
     private void AnalysisAttrTerminal() {
         for (String attr : thisProp.getTerminalAttribute()) {
-            regAttribute(attr);
+            regAttribute(attr,attr);
         }
     }
 
@@ -103,7 +102,7 @@ public class makeBranchTreeNode {
      * @param //wordname 用于指示出现非终结符等价于终结符的时候的判断条件
      */
     //wordname用于指示出现非终结符等价于终结符的时候的判断条件
-    private void regAttribute(String attrbute) {//
+    private void regAttribute(String attrbute,String... wordname) {//
         if (this.buildFiled.contains(attrbute)) return;
         else {
             this.buildFiled.add(attrbute);
@@ -117,10 +116,13 @@ public class makeBranchTreeNode {
         }
         Constructor.addStatement("$L=null", attrbute);
 
-        SetAttribute.addCode("case $S:\n", attrbute);
+        for(String word:wordname){
+            SetAttribute.addCode("case $S:\n", word);
+            GetAttribute.addCode("case $S:\n", word);
+        }
         SetAttribute.addStatement("$L=o", attrbute);
         SetAttribute.addStatement("break");
-        GetAttribute.addCode("case $S:\n", attrbute);
+
         GetAttribute.addStatement("res=$L", attrbute);
         GetAttribute.addStatement("break");
     }

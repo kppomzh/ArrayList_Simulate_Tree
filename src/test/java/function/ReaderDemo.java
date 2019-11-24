@@ -9,6 +9,7 @@ import GrammarMaker.Reader;
 import Lex.Lex;
 import Parser.Parser;
 import Tree_Span.BranchTreeRoot;
+import Utils.LanguageTreePrinter;
 import Utils.RunampCompileASTClasses;
 import org.junit.Test;
 
@@ -22,7 +23,7 @@ import java.util.List;
 public class ReaderDemo {
     @Test
     public void main() throws IOException, GrammerBaseException, GrammerUndefined, ClassNotFoundException, FollowDebugException, IllegalAccessException, InvocationTargetException, InstantiationException, LexBaseException, ParserBaseException {
-        Reader reader=new Reader("D:\\Document\\OneDrive\\CodeRepo\\ASL数据库项目\\ArrayList_Simulate_Tree\\");
+        Reader reader=new Reader("D:\\Document\\OneDrive\\CodeRepo\\ASL\\ArrayList_Simulate_Tree\\");
         reader.LexGenerate();
         reader.ParserGenerate();
         List<File> javaFiles = reader.ASTGenerate();
@@ -38,7 +39,7 @@ public class ReaderDemo {
         parserStream.writeObject(parser);
 
         BranchTreeRoot root=parser.Controller(lex.getWords("1+abs(6*8/7)"));
-//        System.out.println(LanguageTreePrinter.printf(root,0));
+        System.out.println(LanguageTreePrinter.printf(root,0));
 
         ObjectInputStream lexinput=new ObjectInputStream(new FileInputStream(new File("lex.grammarclass")));
         ObjectInputStream parserinput=new ObjectInputStream(new FileInputStream(new File("parser.grammarclass")));
@@ -56,7 +57,7 @@ public class ReaderDemo {
         Parser parser=(Parser)parserinput.readObject();
 
         BranchTreeRoot root=parser.Controller(lex.getWords("1+abs(6*8/7)"));
-        System.out.println(root.getBranchName());
+        System.out.println(LanguageTreePrinter.printf(root,0));
     }
 
     /**

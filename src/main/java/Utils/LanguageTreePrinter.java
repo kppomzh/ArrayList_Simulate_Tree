@@ -7,18 +7,23 @@ import java.util.List;
 
 public class LanguageTreePrinter {
     public static String printf(BranchTreeRoot node,int level){
+        if(node==null){
+            return "";
+        }
+
         StringBuilder sb=new StringBuilder();
-//        boolean[] newLevel=new boolean[level.length+1];
-//        System.arraycopy(level,0,newLevel,0,level.length);
         sb.append(appends(node.getBranchName(),level));
+        sb.append('\n');
 
         List<String> attrs=node.GetAttributes();
         for(String attr:attrs){
             sb.append(appends(attr,level+1));
+            sb.append('\n');
         }
 
         for(BranchTreeRoot childNode:node.getChilds()){
-            sb.append(printf(node,level+1));
+            sb.append(printf(childNode,level+1));
+            sb.append('\n');
         }
 
         return sb.toString();
