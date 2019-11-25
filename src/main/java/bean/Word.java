@@ -72,4 +72,9 @@ public class Word extends BranchTreeRoot {
     public Word GetAttribute(String attr) {
         return this;
     }
+
+    @Override
+    public String getBranchName(){
+        return this.name;
+    }
 }

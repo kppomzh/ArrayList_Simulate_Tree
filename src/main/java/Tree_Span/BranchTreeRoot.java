@@ -15,7 +15,7 @@ import java.util.List;
  */
 public abstract class BranchTreeRoot implements Serializable {
     protected String branchName;
-    protected List<String> Attributes=new LinkedList<>();
+    protected List<BranchTreeRoot> wordsQueue=new LinkedList<>();
 
     public abstract void addChild(BranchTreeRoot child);
 
@@ -25,8 +25,8 @@ public abstract class BranchTreeRoot implements Serializable {
 
     public abstract Word GetAttribute(String attr) throws ASTBaseException;
 
-    public List<String> GetAttributes(){
-        return Attributes;
+    public List<BranchTreeRoot> getWordsQueue(){
+        return wordsQueue;
     }
 
     public String getBranchName() {

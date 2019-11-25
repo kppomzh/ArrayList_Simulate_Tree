@@ -2,9 +2,6 @@ package Utils;
 
 import Tree_Span.BranchTreeRoot;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class LanguageTreePrinter {
     public static String printf(BranchTreeRoot node,int level){
         if(node==null){
@@ -15,12 +12,7 @@ public class LanguageTreePrinter {
         sb.append(appends(node.getBranchName(),level));
         sb.append('\n');
 
-        List<String> attrs=node.GetAttributes();
-        for(String attr:attrs){
-            sb.append(appends(attr,level+1));
-            sb.append('\n');
-        }
-
+//        for(BranchTreeRoot childNode:node.getWordsQueue()){
         for(BranchTreeRoot childNode:node.getChilds()){
             sb.append(printf(childNode,level+1));
             sb.append('\n');

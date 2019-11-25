@@ -65,15 +65,15 @@ public class LanguageNodeProperty {
     }
 
     public void addPropertyNode(LanguageNodeProperty node){
-        if(node.getToListNodeName()!=null){
-            if(notLoop.containsKey(node.getToListNodeName())){
-                toLoop.put(node.getToListNodeName(),notLoop.get(node.getToListNodeName()));
-            }
-        }
-        else if(node.isLoop()){
-            toLoop.put(node.getNodeName(),node);
-        }
-        else
+//        if(node.getToListNodeName()!=null){
+//            if(notLoop.containsKey(node.getToListNodeName())){
+//                toLoop.put(node.getToListNodeName(),notLoop.get(node.getToListNodeName()));
+//            }
+//        }
+//        else if(node.isLoop()){
+//            toLoop.put(node.getNodeName(),node);
+//        }
+//        else
             notLoop.put(node.getNodeName(),node);
     }
 
