@@ -18,8 +18,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
-//import static sun.tools.jconsole.Messages.CLASS_PATH;
-
 public class ReaderDemo {
     @Test
     public void main() throws IOException, GrammerBaseException, GrammerUndefined, ClassNotFoundException, FollowDebugException, IllegalAccessException, InvocationTargetException, InstantiationException, LexBaseException, ParserBaseException {
@@ -44,8 +42,8 @@ public class ReaderDemo {
         ObjectInputStream lexinput=new ObjectInputStream(new FileInputStream(new File("lex.grammarclass")));
         ObjectInputStream parserinput=new ObjectInputStream(new FileInputStream(new File("parser.grammarclass")));
 
-        System.out.println("lex sample " + lex.equals(lexinput.readObject()));
-        System.out.println("parser sample " + parser.equals(parserinput.readObject()));
+        System.out.println("反序列化词法分析器的一致性：" + lex.equals(lexinput.readObject()));
+        System.out.println("反序列化语法分析器的一致性：" + parser.equals(parserinput.readObject()));
     }
 
     @Test

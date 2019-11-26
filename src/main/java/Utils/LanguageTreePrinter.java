@@ -9,13 +9,16 @@ public class LanguageTreePrinter {
         }
 
         StringBuilder sb=new StringBuilder();
-        sb.append(appends(node.getBranchName(),level));
-        sb.append('\n');
-
-//        for(BranchTreeRoot childNode:node.getWordsQueue()){
-        for(BranchTreeRoot childNode:node.getChilds()){
-            sb.append(printf(childNode,level+1));
+        if(node.getClass().getSimpleName().equals("Word")){
+            sb.append(appends(node.toString(),level));
             sb.append('\n');
+        }else {
+            sb.append(appends(node.getBranchName(),level));
+            sb.append('\n');
+
+            for (BranchTreeRoot childNode : node.getWordsQueue()) {
+                sb.append(printf(childNode, level + 1));
+            }
         }
 
         return sb.toString();

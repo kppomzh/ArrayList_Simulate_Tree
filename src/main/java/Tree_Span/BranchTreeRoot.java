@@ -19,10 +19,6 @@ public abstract class BranchTreeRoot implements Serializable {
 
     public abstract void addChild(BranchTreeRoot child);
 
-    public abstract Collection<? extends BranchTreeRoot> getChilds();
-
-    public abstract void SetAttribute(String attr, Word o);
-
     public abstract Word GetAttribute(String attr) throws ASTBaseException;
 
     public List<BranchTreeRoot> getWordsQueue(){
@@ -32,9 +28,4 @@ public abstract class BranchTreeRoot implements Serializable {
     public String getBranchName() {
         return branchName;
     }
-
-//    public void setBranchName(String branchName) {
-//        this.branchName = branchName;
-//    }
-
 }

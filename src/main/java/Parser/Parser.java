@@ -63,13 +63,14 @@ public class Parser implements Serializable {
                 }
             } else {
                 if (analysisStack.getFirst().equals(words.getFirst().getName())) {
-                    nowTree.SetAttribute(analysisStack.pop(), words.pop());
+                    nowTree.addChild(words.pop());
+                    analysisStack.pop();
                 } else {
                     nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst());
                     if (nextListRule.get(0).equals("ε")) {
                         analysisStack.pop();
                     } else if (nextListRule.size() == 1 && pat.inTerminal(nextListRule.get(0))) {
-                        nowTree.SetAttribute(nextListRule.get(0), words.pop());
+                        nowTree.addChild(words.pop());
                         analysisStack.pop();
                     } else {
                         //这种情况说明遇到了不能直接转化成一个终结符的非终结符，
@@ -100,7 +101,6 @@ public class Parser implements Serializable {
             throw new InputNotEmpty(words.getFirst(), words);
         }
 
-        //通过analysisStack找到对应的AST类，但是现在这个工作还暂时不能开展，需要等待AST类的自动生成代码确定AST结构之后再进行。
         return ASTRoot.getRoot();
     }
 

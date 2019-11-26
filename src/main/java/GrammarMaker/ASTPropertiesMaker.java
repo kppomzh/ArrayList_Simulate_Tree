@@ -79,8 +79,6 @@ public class ASTPropertiesMaker {
             return null;
         }
         boolean[] res = new boolean[2];
-//        List<Boolean> toList=new ArrayList<>();
-//        String firstNonTerminal=null;
 
         res[0] = nonTerminal.equals(rule.getLastMark());
 

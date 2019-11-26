@@ -13,16 +13,6 @@ public class StartRoot extends BranchTreeRoot {
     }
 
     @Override
-    public Collection<? extends BranchTreeRoot> getChilds() {
-        return null;
-    }
-
-    @Override
-    public void SetAttribute(String attr, Word o) {
-
-    }
-
-    @Override
     public Word GetAttribute(String attr) {
         return null;
     }

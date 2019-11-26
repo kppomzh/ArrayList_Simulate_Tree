@@ -16,14 +16,14 @@ public class makeBranchTreeNode {
     private TypeSpec.Builder ts, Start;
     private String baseDir = "src/main/java", packagePath = "Tree_Span.Impl", className;
     private MethodSpec.Builder[] OverrideFunctions;//继承方法
-    private MethodSpec.Builder addChild, getChilds, SetAttribute, GetAttribute;
+    private MethodSpec.Builder addChild, GetAttribute;
     private MethodSpec.Builder Constructor;//构造方法
     private LanguageNodeProperty thisProp;
     /**
      * not2Attr：非终结符，所以不能建立为属性
      * buildField：记录已经被建立子节点的符号，当然仅限于现在这个节点中
      */
-    private Set<String> buildFiled;//not2Attr,
+    private Set<String> buildFiled;
 
     public makeBranchTreeNode(LanguageNodeProperty thisProp) throws ClassNotFoundException {
         className = thisProp.getNodeName();
@@ -33,24 +33,17 @@ public class makeBranchTreeNode {
 
         OverrideFunctions = makeExtendMethodBuilder();
         addChild = OverrideFunctions[0];
-        getChilds = OverrideFunctions[1];
-        SetAttribute = OverrideFunctions[2];
-        GetAttribute = OverrideFunctions[3];
+        GetAttribute = OverrideFunctions[1];
         Constructor = MethodSpec.constructorBuilder();
         Constructor.addModifiers(Modifier.PUBLIC);
         Constructor.addStatement("branchName=$S",className);
         this.thisProp = thisProp;
         buildFiled = new HashSet<>();
-
-//        Start=TypeSpec.classBuilder(ClassName.get(S.class));
     }
 
     public File buildFile() throws IOException {
-        getChilds.addStatement("return childs");
         ts.addMethod(Constructor.build());
-        SetAttribute.endControlFlow();
-//        GetAttribute.addCode("default:\n");
-//        GetAttribute.addStatement("throw new ASTBaseException(attr)");
+        addChild.endControlFlow();
         GetAttribute.endControlFlow();
         GetAttribute.addStatement("return res");
 
@@ -81,7 +74,7 @@ public class makeBranchTreeNode {
         for (Map.Entry<String, LanguageNodeProperty> notloopEntry : notloop.entrySet()) {
             if (notloopEntry.getValue().getTerminalStructure()) {
                 regAttribute(notloopEntry.getValue().getNodeName(),notloopEntry.getValue().getTerminalAttribute());
-            } else {//(not2Attr.contains(notloopEntry.getValue().getNodeName()))
+            } else {
                 regNormalMethod(notloopEntry.getValue().getNodeName());
             }
         }
@@ -117,11 +110,11 @@ public class makeBranchTreeNode {
         Constructor.addStatement("$L=null", attrbute);
 
         for(String word:wordname){
-            SetAttribute.addCode("case $S:\n", word);
+            addChild.addCode("case $S:\n", word);
             GetAttribute.addCode("case $S:\n", word);
         }
-        SetAttribute.addStatement("$L=o", attrbute);
-        SetAttribute.addStatement("break");
+        addChild.addStatement("$L=(Word)child", attrbute);
+        addChild.addStatement("break");
 
         GetAttribute.addStatement("res=$L", attrbute);
         GetAttribute.addStatement("break");
@@ -144,16 +137,15 @@ public class makeBranchTreeNode {
         }
 
         ts.addField(BranchTreeRoot.class, "Node" + fieldName, Modifier.PUBLIC);
-        addChild.beginControlFlow("if(child.getBranchName().equals($S))", fieldName);
+        addChild.addCode("case $S:\n",fieldName);
         addChild.addStatement("Node$L=child", fieldName);
-        addChild.endControlFlow();
+        addChild.addStatement("break");
 
         MethodSpec.Builder mb = MethodSpec.methodBuilder("get"+fieldName);
         mb.returns(BranchTreeRoot.class);
         mb.addModifiers(Modifier.PUBLIC);
         mb.addStatement("return Node$L", fieldName);
 
-        getChilds.addStatement("childs.add(Node$L)", fieldName);
         ts.addMethod(mb.build());
     }
 
@@ -175,16 +167,15 @@ public class makeBranchTreeNode {
 
         ts.addField(ParameterizedTypeName.get(ArrayList.class, BranchTreeRoot.class), "List" + fieldName, Modifier.PRIVATE);
         Constructor.addStatement("List$L=new ArrayList<>()", fieldName);
-        addChild.beginControlFlow("if(child.getBranchName().equals($S))", fieldName);
+        addChild.addCode("case $S:\n",fieldName);
         addChild.addStatement("List$L.add(child)", fieldName);
-        addChild.endControlFlow();
+        addChild.addStatement("break");
 
         MethodSpec.Builder mb = MethodSpec.methodBuilder("get"+fieldName);
         mb.returns(ParameterizedTypeName.get(List.class, BranchTreeRoot.class));
         mb.addModifiers(Modifier.PUBLIC);
         mb.addStatement("return List$L", fieldName);
 
-        getChilds.addStatement("childs.addAll(List$L)", fieldName);
         ts.addMethod(mb.build());
     }
 
@@ -196,36 +187,24 @@ public class makeBranchTreeNode {
      * addChild则应该根据不同的类型分开添加到不同的list或者
      */
     public MethodSpec.Builder[] makeExtendMethodBuilder() {
-        MethodSpec.Builder[] builder = new MethodSpec.Builder[4];
+        MethodSpec.Builder[] builder = new MethodSpec.Builder[2];
 
         builder[0] = MethodSpec.methodBuilder("addChild");
         builder[0].returns(TypeName.VOID);
         builder[0].addAnnotation(Override.class);
         builder[0].addModifiers(Modifier.PUBLIC);
         builder[0].addParameter(TypeName.get(BranchTreeRoot.class), "child");
+        builder[0].addStatement("super.wordsQueue.add(child)");
+        builder[0].beginControlFlow("switch(child.getBranchName())");
 
-        builder[1] = MethodSpec.methodBuilder("getChilds");
-        builder[1].returns(ParameterizedTypeName.get(Collection.class, BranchTreeRoot.class));
+        builder[1] = MethodSpec.methodBuilder("GetAttribute");
+        builder[1].returns(Word.class);
         builder[1].addAnnotation(Override.class);
         builder[1].addModifiers(Modifier.PUBLIC);
-        builder[1].addStatement("$T childs=new $T<>()", ParameterizedTypeName.get(Collection.class, BranchTreeRoot.class), ParameterizedTypeName.get(LinkedList.class));
-
-        builder[2] = MethodSpec.methodBuilder("SetAttribute");
-        builder[2].returns(TypeName.VOID);
-        builder[2].addAnnotation(Override.class);
-        builder[2].addModifiers(Modifier.PUBLIC);
-        builder[2].addParameter(String.class, "attr");
-        builder[2].addParameter(Word.class, "o");
-        builder[2].beginControlFlow("switch(attr)");
-
-        builder[3] = MethodSpec.methodBuilder("GetAttribute");
-        builder[3].returns(Word.class);
-        builder[3].addAnnotation(Override.class);
-        builder[3].addModifiers(Modifier.PUBLIC);
-        builder[3].addParameter(String.class, "attr");
-        builder[3].addException(ASTBaseException.class);
-        builder[3].addStatement("Word res=null");
-        builder[3].beginControlFlow("switch(attr)");
+        builder[1].addParameter(String.class, "attr");
+        builder[1].addException(ASTBaseException.class);
+        builder[1].addStatement("Word res=null");
+        builder[1].beginControlFlow("switch(attr)");
         return builder;
     }
 }

@@ -20,12 +20,6 @@ public class LanguageNodeProperty {
      * 这个非终结符在表达的时候就可以表达成从多个terminalAttribute中挑选一个的属性。
      */
     private boolean isTerminalStructure;
-    /*
-     * 标记这个非终结符实际上是一个终结符的指代，主要用于那些有确定含义的标点符号上。
-     * 用refersToMark来确定这个属性的真值。
-     */
-//    private boolean isMarkRefer;
-//    private List<String> refersToMark;
 
     private Map<String,LanguageNodeProperty> toLoop;
     private Map<String,LanguageNodeProperty> notLoop;

@@ -57,7 +57,7 @@ public class PredictiveAnalysisTable implements Serializable {
             return toreturn.getRules();
         }
         else{
-            throw new NullGrammerBranch(Terminal);
+            throw new NullGrammerBranch(nonTerminal,Terminal);
         }
     }
 

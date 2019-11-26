@@ -54,17 +54,15 @@ public class Word extends BranchTreeRoot {
     }
 
     @Override
+    public String toString(){
+        if(substance==null)
+            return name;
+        else
+            return substance;
+    }
+
+    @Override
     public void addChild(BranchTreeRoot child) {
-
-    }
-
-    @Override
-    public Collection<? extends BranchTreeRoot> getChilds() {
-        return null;
-    }
-
-    @Override
-    public void SetAttribute(String attr, Word o) {
 
     }
 
