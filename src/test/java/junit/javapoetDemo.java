@@ -1,5 +1,6 @@
 package junit;
 
+import Tree_Span.BranchTreeRoot;
 import Tree_Span.StartRoot;
 import Utils.JavaPoet.makeBranchTreeNode;
 import bean.GrammerMaker.LanguageNodeProperty;
@@ -55,5 +56,12 @@ public class javapoetDemo {
         tbs.addField(Word.class,"testWord",Modifier.PUBLIC);
         ts=tbs.build();
         JavaFile.builder("Tree_Span", ts).build().writeTo(new File(baseDir));
+    }
+
+    @Test
+    public void classtrue(){
+        BranchTreeRoot b=new Word("aaa");
+        System.out.println(b.getClass().getName());
+        System.out.println(b.getClass().getSimpleName());
     }
 }

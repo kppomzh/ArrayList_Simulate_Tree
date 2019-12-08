@@ -22,9 +22,11 @@ public class Lex implements Serializable {
     private int line = 0, list = 0,nowindex=0;
     private boolean annotationNull=false;
     private IdentifierSetter tokenSet;
+    private LexRule lexRule;
 
-    public Lex(IdentifierSetter set){
+    public Lex(IdentifierSetter set,LexRule rule){
         tokenSet=set;
+        lexRule=rule;
     }
 
     public String[] Pretreatment(String allStatmentinOne){
@@ -59,8 +61,7 @@ public class Lex implements Serializable {
                     words.add(status3());
                     break;
                 case 4://符号
-                case 5:
-                case 6:
+                case 10:
                     words.add(status4());
                     break;
                 case -3://遇到了注释并且在列表里加入了一个null，此时将null移除
@@ -90,7 +91,7 @@ public class Lex implements Serializable {
     private void status0() throws InvalidSymbolException {
         upper:
         for (int loop = nowindex; loop < thisSQL.length(); loop++) {
-            int status = LexRule.getCharStatus(thisSQL.charAt(loop));
+            int status = lexRule.getCharStatus(thisSQL.charAt(loop));
             switch (status) {
                 case 0:
                     continue;
@@ -112,16 +113,15 @@ public class Lex implements Serializable {
      */
     private Word status1() throws LexBaseException {
         StringBuilder sb = new StringBuilder();
-        boolean toLowercase=true;
+        boolean toLowerCase=true;
         int loop = nowindex;
         upper:
         for (; loop < thisSQL.length(); loop++) {
-            int status = LexRule.getCharStatus(thisSQL.charAt(loop));
+            int status = lexRule.getCharStatus(thisSQL.charAt(loop));
             switch (status) {
                 case 1:
                 case 2:
-//                case 6:
-                    if(toLowercase)
+                    if(toLowerCase)
                         sb.append(getSmallLetter(thisSQL.charAt(loop)));
                     else
                         sb.append(thisSQL.charAt(loop));
@@ -129,14 +129,14 @@ public class Lex implements Serializable {
                 case -1:
                     throw new InvalidSymbolException(line, list, thisSQL.charAt(loop));
                 case 9://扫描到"符号
-                    toLowercase=!toLowercase;
+                    toLowerCase=!toLowerCase;
                     break;
                 default:
                     nowStatus = status;
                     break upper;
             }
         }
-        if(!toLowercase)
+        if(!toLowerCase)
             throw new TerminatorNotFoundException(line,list,'\"');
 
         nowindex=loop;
@@ -162,12 +162,12 @@ public class Lex implements Serializable {
         int loop = nowindex;
         upper:
         for (; loop < thisSQL.length(); loop++) {
-            int status = LexRule.getCharStatus(thisSQL.charAt(loop));
+            int status = lexRule.getCharStatus(thisSQL.charAt(loop));
             switch (status) {
                 case 2:
                     sb.append(thisSQL.charAt(loop));
                     break;
-                case 6:
+                case 10:
                     if (point) {
                         throw new SurplusDecimalPointException(line, list);
                     } else {
@@ -207,7 +207,7 @@ public class Lex implements Serializable {
         int loop = nowindex;
         upper:
         for (; loop < thisSQL.length(); loop++) {
-            switch (LexRule.getCharStatus(thisSQL.charAt(loop))) {
+            switch (lexRule.getCharStatus(thisSQL.charAt(loop))) {
                 case 8:
                     sb.append(Escape(thisSQL.charAt(loop+1)));
                     loop++;
@@ -238,13 +238,12 @@ public class Lex implements Serializable {
         int loop = nowindex;
         upper:
         for (; loop < thisSQL.length(); loop++) {
-            int status = LexRule.getCharStatus(thisSQL.charAt(loop));
+            int status = lexRule.getCharStatus(thisSQL.charAt(loop));
             switch (status) {
                 case -1:
                     throw new InvalidSymbolException(line, list, thisSQL.charAt(loop));
                 case 4:
-                case 5://扫描到括号
-                case 6://用于分割标识符的句号
+                case 10://用于分割标识符的句号
                     //如果组成的符号字符串不在关键字符号表里，那么就会以当前的StringBuilder返回
                     if(tokenSet.isMark(sb.toString()+thisSQL.charAt(loop))) {
                         sb.append(thisSQL.charAt(loop));

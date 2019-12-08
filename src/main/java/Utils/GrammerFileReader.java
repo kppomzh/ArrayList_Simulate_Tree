@@ -41,7 +41,7 @@ public class GrammerFileReader {
         return lines;
     }
 
-    public Map<String,String> makeBaseGrammer(Collection<String> lines){
+    public static Map<String,String> makeBaseGrammer(Collection<String> lines){
         Map<String,String> res=new HashMap<>();
         for(String mark:lines){
             int splitINdex=mark.lastIndexOf(':');
@@ -50,11 +50,19 @@ public class GrammerFileReader {
         return res;
     }
 
-    public List<KVEntryImpl<String,String>> makeConbinationGrammer(Collection<String> lines){
-        List<KVEntryImpl<String,String>> prop=new LinkedList<>();
+    public static Map<String,String> makeConbinationGrammer(Collection<String> lines){
+        Map<String,String> prop=new HashMap<>();
         for(String rule:lines){
             int splitINdex=rule.indexOf(':');
-            prop.add(new KVEntryImpl<>(rule.substring(0,splitINdex).strip(),rule.substring(splitINdex+1).strip()));
+            if(splitINdex>0)
+                prop.put(rule.substring(0,splitINdex).strip(),rule.substring(splitINdex+1).strip());
+            else{
+                StringBuilder sb=new StringBuilder(rule);
+                for(int i=1;i<sb.length();i=i+2){
+                    sb.insert(i,' ');
+                }
+                prop.put(rule,sb.toString());
+            }
         }
         return prop;
     }

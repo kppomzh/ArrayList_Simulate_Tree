@@ -1,10 +1,13 @@
 package GrammarMaker;
 
+import Exceptions.GrammerMakerError.GrammerBaseException;
 import Exceptions.GrammerMakerError.Impl.*;
 import Lex.Lex;
+import Lex.LexRule;
 import Parser.Parser;
 import Utils.GrammerFileReader;
 import Utils.JavaPoet.makeBranchTreeNode;
+import Utils.env_properties;
 import bean.GrammerMaker.RuleInfo;
 import bean.GrammerMaker.LanguageNodeProperty;
 import bean.KVEntryImpl;
@@ -24,6 +27,7 @@ import java.util.*;
 public class Reader {
     private static final String[] FixLoadGrammer={"annotation.grammer","keyword.grammer","mark.grammer"};
     private int tokenNum=0;
+    private String grammerBasePath= env_properties.getEnvironment("grammerFilePath");
     private Collection<String> grammerFileList;
     private GrammerFileReader grammerReader;
     /**
@@ -36,17 +40,18 @@ public class Reader {
      * markCollection记录标点符号，未来分析AST类的时候要用
      */
     private Set<String> ruleNameSet,keyNameSet;
-    private Collection<String> markCollection;
+    private Collection<String> markCollection,KeyWordCollection;
     private LinkedList<String> toCountCollection;
 
     //get方法需要用到的全局变量
     private PredictiveAnalysisTable analysisTable;
     private String[] anno = new String[0],key = new String[0],mark = new String[0];
+    private int[] charMap;
 
-    public Reader(String basePath) throws IOException {
+    public Reader() throws IOException {
         ruleNameSet =new HashSet<>();
         keyNameSet=new HashSet<>();
-        grammerReader=new GrammerFileReader(basePath);
+        grammerReader=new GrammerFileReader(grammerBasePath);
         grammerFileList=grammerReader.getLinesinFile("grammer.list");
         ruleMap = new HashMap<>();
     }
@@ -57,15 +62,16 @@ public class Reader {
      * @throws IOException
      * @throws TokenisRepeat
      */
-    public void LexGenerate() throws IOException, TokenisRepeat {
-
+    public void LexGenerate() throws IOException, GrammerBaseException {
         for (int i = 0; i < 3; i++) {
             Collection<String> collection=grammerReader.getLinesinFile(FixLoadGrammer[i]);
             switch (FixLoadGrammer[i]){
                 case "annotation.grammer":
                     anno=collection.toArray(new String[0]);
+//                    grammerReader.makeConbinationGrammer(collection);
                     break;
                 case "keyword.grammer":
+                    KeyWordCollection=collection;
                     key=collection.toArray(new String[0]);
                     break;
                 case "mark.grammer":
@@ -79,11 +85,13 @@ public class Reader {
         if(tokenNum!=keyNameSet.size()){
             throw new TokenisRepeat();
         }
+        countCharMap();
+
         keyNameSet.add("ε");
     }
 
     public Lex getLex(){
-        return new Lex(new IdentifierSetter(anno,mark,key));
+        return new Lex(new IdentifierSetter(anno,mark,key),new LexRule(charMap));
     }
 
     /**
@@ -169,12 +177,12 @@ public class Reader {
      * @param prop
      * @throws GrammerUndefined
      */
-    private void makeRule(List<KVEntryImpl<String,String>> prop) throws GrammerUndefined {
-        for(KVEntryImpl<String,String> e:prop){
+    private void makeRule(Map<String,String> prop) throws GrammerUndefined {
+        for(Map.Entry<String, String> e:prop.entrySet()){
             ruleNameSet.add(e.getKey());
         }
 
-        for(KVEntryImpl<String,String> e:prop){
+        for(Map.Entry<String, String> e:prop.entrySet()){
             //rulemap中未记录则新建RuleInfo类
             if(!ruleMap.containsKey(e.getKey())){
                 ruleMap.put(e.getKey(), new RuleInfo());
@@ -237,5 +245,11 @@ public class Reader {
         ruleMap.get("S").addTerminaltoFollowSet("#");
         FollowCollectionMaker maker=new FollowCollectionMaker(ruleMap,ruleNameSet);
         ruleMap=maker.countFollowCollection();
+    }
+
+
+    private void countCharMap() throws LexRuleException {
+        LexStructureAnalysis lsa=new LexStructureAnalysis();
+        this.charMap=lsa.AnalysisFunction(markCollection,KeyWordCollection);
     }
 }

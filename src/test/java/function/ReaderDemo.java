@@ -21,7 +21,7 @@ import java.util.List;
 public class ReaderDemo {
     @Test
     public void main() throws IOException, GrammerBaseException, GrammerUndefined, ClassNotFoundException, FollowDebugException, IllegalAccessException, InvocationTargetException, InstantiationException, LexBaseException, ParserBaseException {
-        Reader reader=new Reader("D:\\Document\\OneDrive\\CodeRepo\\ASL\\ArrayList_Simulate_Tree\\");
+        Reader reader=new Reader();
         reader.LexGenerate();
         reader.ParserGenerate();
         List<File> javaFiles = reader.ASTGenerate();

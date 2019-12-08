@@ -15,7 +15,7 @@ public abstract class GrammerBaseException extends Exception {
         detail=false;
     }
 
-    protected void append(String msg){
+    protected void append(Object msg){
         errMessage.append(msg);
     }
     protected void append(Number msg){
