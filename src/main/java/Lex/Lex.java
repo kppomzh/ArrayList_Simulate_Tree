@@ -10,6 +10,7 @@ import bean.Word;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Before:Word segment
@@ -19,21 +20,34 @@ import java.util.List;
 public class Lex implements Serializable {
     private int nowStatus = 0;
     private String thisSQL;
-    private int line = 0, list = 0,nowindex=0;
-    private boolean annotationNull=false;
+    private int line = 0, list = 0, nowindex = 0;
+    private boolean annotationNull = false;
     private IdentifierSetter tokenSet;
     private LexRule lexRule;
 
-    public Lex(IdentifierSetter set,LexRule rule){
-        tokenSet=set;
-        lexRule=rule;
+    private Set<Integer> multiValueState1, multiValueState2, multiValueState4;
+
+    public Lex(IdentifierSetter set, LexRule rule) {
+        tokenSet = set;
+        lexRule = rule;
     }
 
-    public String[] Pretreatment(String allStatmentinOne){
-        String[] allStatments=allStatmentinOne.split(";");
+    public String[] Pretreatment(String allStatmentinOne) {
+        String[] allStatments = new String[]{allStatmentinOne};
+        List<String> tempStatements = new LinkedList<>();
+
+        for (String s : lexRule.getEOFStrings()) {
+            for (String toSplit : allStatments) {
+                String[] temp = toSplit.split(s);
+                for (String toAdd : temp) {
+                    tempStatements.add(toAdd);
+                }
+            }
+            allStatments = tempStatements.toArray(new String[0]);
+        }
 
         for (int i = 0; i < allStatments.length; i++) {
-            allStatments[i]=allStatments[i].strip();
+            allStatments[i] = allStatments[i].strip();
         }
 
         return allStatments;
@@ -42,10 +56,10 @@ public class Lex implements Serializable {
     public LinkedList<Word> getWords(String SQL) throws LexBaseException {
         thisSQL = SQL;
         LinkedList<Word> words = new LinkedList<>();
-        words.add(new Word(null,0,0));
+        words.add(new Word(null, 0, 0));
 
         upper:
-        while(nowindex<thisSQL.length()) {
+        while (nowindex < thisSQL.length()) {
             switch (nowStatus) {
                 case 0://初态
                     status0();
@@ -66,22 +80,22 @@ public class Lex implements Serializable {
                     break;
                 case -3://遇到了注释并且在列表里加入了一个null，此时将null移除
                     words.removeLast();
-                    nowStatus=0;
+                    nowStatus = 0;
                     break;
                 case 8:
-                    throw new InvalidSymbolException(line,list,'\\');
+                    throw new InvalidSymbolException(line, list, '\\');
                 case -2:
                     break upper;
                 default:
-                    throw new InvalidSymbolException(line,list);
+                    throw new InvalidSymbolException(line, list);
             }
         }
 
         words.removeFirst();
-        nowindex=0;
+        nowindex = 0;
         line = 0;
         list = 0;
-        nowStatus=0;
+        nowStatus = 0;
         return words;
     }
 
@@ -100,20 +114,21 @@ public class Lex implements Serializable {
                 case -2:
                 default:
                     nowStatus = status;
-                    nowindex=loop;
+                    nowindex = loop;
                     break upper;
             }
         }
     }
 
     //从SQL的index下标开始继续分析
+
     /**
      * @return 返回由字母下划线和数字组成的单词
      * @throws InvalidSymbolException
      */
     private Word status1() throws LexBaseException {
         StringBuilder sb = new StringBuilder();
-        boolean toLowerCase=true;
+        boolean toLowerCase = true;
         int loop = nowindex;
         upper:
         for (; loop < thisSQL.length(); loop++) {
@@ -121,30 +136,31 @@ public class Lex implements Serializable {
             switch (status) {
                 case 1:
                 case 2:
-                    if(toLowerCase)
-                        sb.append(getSmallLetter(thisSQL.charAt(loop)));
-                    else
-                        sb.append(thisSQL.charAt(loop));
+                    if (toLowerCase) sb.append(getSmallLetter(thisSQL.charAt(loop)));
+                    else sb.append(thisSQL.charAt(loop));
                     break;
                 case -1:
                     throw new InvalidSymbolException(line, list, thisSQL.charAt(loop));
                 case 9://扫描到"符号
-                    toLowerCase=!toLowerCase;
+                    toLowerCase = !toLowerCase;
                     break;
                 default:
+                    if (multiValueState1.contains(status)) {
+                        if (toLowerCase) sb.append(getSmallLetter(thisSQL.charAt(loop)));
+                        else sb.append(thisSQL.charAt(loop));
+                        break;
+                    }
                     nowStatus = status;
                     break upper;
             }
         }
-        if(!toLowerCase)
-            throw new TerminatorNotFoundException(line,list,'\"');
+        if (!toLowerCase) throw new TerminatorNotFoundException(line, list, '\"');
 
-        nowindex=loop;
-        if(tokenSet.isIdentifier(sb.toString())) {
+        nowindex = loop;
+        if (tokenSet.isIdentifier(sb.toString())) {
             return new Word(sb.toString(), line, list);
-        }
-        else{
-            Word w=new Word("NormalTAG", line, list);
+        } else {
+            Word w = new Word("NormalTAG", line, list);
             w.setSubstance(sb.toString());
             return w;
         }
@@ -181,18 +197,26 @@ public class Lex implements Serializable {
                 case -1:
                     throw new InvalidSymbolException(line, list, thisSQL.charAt(loop));
                 default:
+                    if (multiValueState2.contains(status)) {
+                        if (point) {
+                            throw new SurplusDecimalPointException(line, list);
+                        } else {
+                            point = true;
+                            sb.append(thisSQL.charAt(loop));
+                            break;
+                        }
+                    }
                     nowStatus = status;
                     break upper;
             }
         }
-        nowindex=loop;
-        if(point) {
-            Word w=new Word("DOUBLE", line, list);
+        nowindex = loop;
+        if (point) {
+            Word w = new Word("DOUBLE", line, list);
             w.setSubstance(sb.toString());
             return w;
-        }
-        else{
-            Word w=new Word("INTEGER", line, list);
+        } else {
+            Word w = new Word("INTEGER", line, list);
             w.setSubstance(sb.toString());
             return w;
         }
@@ -209,7 +233,7 @@ public class Lex implements Serializable {
         for (; loop < thisSQL.length(); loop++) {
             switch (lexRule.getCharStatus(thisSQL.charAt(loop))) {
                 case 8:
-                    sb.append(Escape(thisSQL.charAt(loop+1)));
+                    sb.append(Escape(thisSQL.charAt(loop + 1)));
                     loop++;
                     break;
                 case 3:
@@ -219,19 +243,18 @@ public class Lex implements Serializable {
                     break;
             }
         }
-        Word w=new Word("STRING", line, list);
+        Word w = new Word("STRING", line, list);
         w.setSubstance(sb.toString());
         //因为并不知道字符串后面有什么，而字符串识别的自动机在后一个单引号前停下
         //所以要将nowindex加一，并且重置status让程序自己再重置status
-        nowindex=loop+1;
-        nowStatus=0;
+        nowindex = loop + 1;
+        nowStatus = 0;
         return w;
     }
 
     /**
      * @return 返回符号
-     * @throws InvalidSymbolException
-     * 此时需要到符号表中检索符号是否合法
+     * @throws InvalidSymbolException 此时需要到符号表中检索符号是否合法
      */
     private Word status4() throws LexBaseException {
         StringBuilder sb = new StringBuilder();
@@ -245,76 +268,102 @@ public class Lex implements Serializable {
                 case 4:
                 case 10://用于分割标识符的句号
                     //如果组成的符号字符串不在关键字符号表里，那么就会以当前的StringBuilder返回
-                    if(tokenSet.isMark(sb.toString()+thisSQL.charAt(loop))) {
+                    if (tokenSet.isMark(sb.toString() + thisSQL.charAt(loop))) {
                         sb.append(thisSQL.charAt(loop));
-                        if(tokenSet.isAnnotation(sb.toString())){
-                            nowindex=loop+1;
+                        if (tokenSet.isAnnotation(sb.toString())) {
+                            nowindex = loop + 1;
                             AnnotationMaker(sb);
-                            nowStatus=-3;
+                            nowStatus = -3;
                             return null;
                         }
                         break;
                     }
                 default:
+                    if (multiValueState4.contains(status)) {
+                        sb.append(thisSQL.charAt(loop));
+                        if (tokenSet.isAnnotation(sb.toString())) {
+                            nowindex = loop + 1;
+                            AnnotationMaker(sb);
+                            nowStatus = -3;
+                            return null;
+                        }
+                        break;
+                    }
                     nowStatus = status;
                     break upper;
             }
         }
-        nowindex=nowindex+sb.length();
-        return new Word(sb.toString(),line,list);
+        nowindex = nowindex + sb.length();
+        return new Word(sb.toString(), line, list);
     }
 
     //转义字符处理函数
-    private char Escape(char addone) throws InvalidSymbolException
-    {
-        switch(addone)
-        {
+    private char Escape(char addone) throws InvalidSymbolException {
+        switch (addone) {
             //case 'a': return '\a'; //java不支持\a？
-            case 'b': return '\b';
-            case 'f': return '\f';
-            case 'n': return '\n';
-            case 'r': return '\r';
-            case 't': return '\t';
+            case 'b':
+                return '\b';
+            case 'f':
+                return '\f';
+            case 'n':
+                return '\n';
+            case 'r':
+                return '\r';
+            case 't':
+                return '\t';
             //case 'v': return '\v'; //java不支持\v？
-            case '\\': return '\\';
-            case '\'': return '\'';
-            case '\"': return '\"';
-            //case '\?': return '\?';
-            default: throw new InvalidSymbolException(line,list,'\\',addone);
+            case '\\':
+                return '\\';
+            case '\'':
+                return '\'';
+            case '\"':
+                return '\"';
+            case '?':
+                return '?';
+            default:
+                throw new InvalidSymbolException(line, list, '\\', addone);
         }
     }
 
-    private char getSmallLetter(char c){
-        if(c>=65&&c<=90){
-            return (char)(c+32);
-        }
-        else
-            return c;
+    private char getSmallLetter(char c) {
+        if (c >= 65 && c <= 90) {
+            return (char) (c + 32);
+        } else return c;
     }
 
     private void AnnotationMaker(StringBuilder sb) throws TerminatorNotFoundException {
-        if(sb.toString().equals("--")){
-            while(thisSQL.charAt(nowindex)!='\n'&&nowindex<thisSQL.length()){
+        if (sb.toString().equals("--")) {
+            while (thisSQL.charAt(nowindex) != '\n' && nowindex < thisSQL.length()) {
                 nowindex++;
             }
-        }else if(sb.toString().equals("/*")){
-            while((thisSQL.charAt(nowindex) != '*' || thisSQL.charAt(nowindex + 1) != '/') &&nowindex<thisSQL.length()-1){
+        } else if (sb.toString().equals("/*")) {
+            while ((thisSQL.charAt(nowindex) != '*' || thisSQL.charAt(nowindex + 1) != '/') && nowindex < thisSQL.length() - 1) {
                 nowindex++;
             }
-            nowindex=nowindex+2;
-        }else{
-            throw new TerminatorNotFoundException(line,list,sb.toString().toCharArray());
+            nowindex = nowindex + 2;
+        } else {
+            throw new TerminatorNotFoundException(line, list, sb.toString().toCharArray());
         }
     }
 
     @Override
-    public boolean equals(Object o){
-        if(o==null)
-            return false;
-        if(!o.getClass().getName().equals(this.getClass().getName()))
-            return false;
-        Lex l=(Lex) o;
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (!o.getClass().getName().equals(this.getClass().getName())) return false;
+        Lex l = (Lex) o;
 
         return this.tokenSet.equals(l.tokenSet);
+    }
+
+    public void setMultiValueState1(Set<Integer> multiValueState1) {
+        this.multiValueState1 = multiValueState1;
+    }
+
+    public void setMultiValueState2(Set<Integer> multiValueState2) {
+        this.multiValueState2 = multiValueState2;
+    }
+
+    public void setMultiValueState4(Set<Integer> multiValueState4) {
+        this.multiValueState4 = multiValueState4;
     }
 }
