@@ -67,8 +67,8 @@ public class Reader {
             Collection<String> collection=grammerReader.getLinesinFile(FixLoadGrammer[i]);
             switch (FixLoadGrammer[i]){
                 case "annotation.grammer":
+                    keyNameSet.addAll(collection);
                     anno=collection.toArray(new String[0]);
-//                    grammerReader.makeConbinationGrammer(collection);
                     break;
                 case "keyword.grammer":
                     KeyWordCollection=collection;
@@ -80,12 +80,16 @@ public class Reader {
                     break;
             }
             tokenNum+=collection.size();
-            keyNameSet.addAll(collection);
+        }
+
+        {
+            countCharMap();
+            keyNameSet.addAll(KeyWordCollection);
+            keyNameSet.addAll(markCollection);
         }
         if(tokenNum!=keyNameSet.size()){
             throw new TokenisRepeat();
         }
-        countCharMap();
 
         keyNameSet.add("ε");
     }
@@ -251,5 +255,6 @@ public class Reader {
     private void countCharMap() throws LexRuleException {
         LexStructureAnalysis lsa=new LexStructureAnalysis();
         this.charMap=lsa.AnalysisFunction(markCollection,KeyWordCollection);
+        KeyWordCollection=lsa.getAnalysiskeywordSet();
     }
 }

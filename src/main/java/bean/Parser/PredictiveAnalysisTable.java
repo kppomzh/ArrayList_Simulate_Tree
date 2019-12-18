@@ -1,8 +1,8 @@
 package bean.Parser;
 
 import Exceptions.GrammerMakerError.Impl.LeftCommonFactorConflict;
-import Exceptions.ParserError.Impl.NullGrammerBranch;
 import Exceptions.ParserError.ParserBaseException;
+import Utils.Parser.MultiForkSearchTreeSet;
 import bean.Word;
 
 import java.io.Serializable;
@@ -14,51 +14,55 @@ import java.util.*;
  * TerminalMap负责将所有终结符映射到driverTable[x][]上
  */
 public class PredictiveAnalysisTable implements Serializable {
-    private Rule[][] driverTable;
-    private HashMap<String,Integer> nonTerminalMap;
-    private HashMap<String,Integer> TerminalMap;
+    private MultiForkSearchTreeSet[][] driverTable;
+    private HashMap<String, Integer> nonTerminalMap;
+    private HashMap<String, Integer> TerminalMap;
 
-    public PredictiveAnalysisTable(Collection<String> TerminalWords, Collection<String> nonTerminalWords){
-        Collection<String> usableTerminalWords=new HashSet<>(TerminalWords);
+    public PredictiveAnalysisTable(Collection<String> TerminalWords, Collection<String> nonTerminalWords) {
+        Collection<String> usableTerminalWords = new HashSet<>(TerminalWords);
         usableTerminalWords.remove("ε");
-        driverTable=new Rule[usableTerminalWords.size()+1][nonTerminalWords.size()];
-        TerminalMap=new HashMap<>();
-        nonTerminalMap=new HashMap<>();
-        int i = 0;
+        driverTable = new MultiForkSearchTreeSet[usableTerminalWords.size() + 1][nonTerminalWords.size()];
 
-        Iterator<String> twi=usableTerminalWords.iterator();
+        TerminalMap = new HashMap<>();
+        nonTerminalMap = new HashMap<>();
+        int i;
+
+        Iterator<String> twi = usableTerminalWords.iterator();
         for (i = 0; twi.hasNext(); i++) {
-            TerminalMap.put(twi.next(),i);
+            String terminalName = twi.next();
+            TerminalMap.put(terminalName, i);
+
+            for (int loop = 0; loop < nonTerminalWords.size(); loop++) {
+                driverTable[i][loop] = new MultiForkSearchTreeSet(terminalName);
+            }
         }
-        TerminalMap.put("#",i);
-        Iterator<String> ntwi=nonTerminalWords.iterator();
+        TerminalMap.put("#", i);
+        for (int loop = 0; loop < nonTerminalWords.size(); loop++) {
+            driverTable[i][loop] = new MultiForkSearchTreeSet("#");
+        }
+        Iterator<String> ntwi = nonTerminalWords.iterator();
         for (i = 0; ntwi.hasNext(); i++) {
-            nonTerminalMap.put(ntwi.next(),i);
+            String terminalName = ntwi.next();
+            nonTerminalMap.put(terminalName, i);
         }
     }
 
-    public void setDriverTable(String terminal,String nonTerminal,Rule r) throws LeftCommonFactorConflict {
-        if(terminal.equals("ε")){
+    public void setDriverTable(String terminal, String nonTerminal, Rule r) throws LeftCommonFactorConflict {
+        if (terminal.equals("ε")) {
             return;
         }
-        if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)]==null) {
-            driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)] = r;
-        }
-        else{
-            throw new LeftCommonFactorConflict(terminal,nonTerminal,r,
-                    driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)]);
-        }
+        driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)].addObject(r);
+//        if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)]==null) {
+//            driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)] = r;
+//        }
+//        else{
+//            throw new LeftCommonFactorConflict(terminal,nonTerminal,r,
+//                    driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)]);
+//        }
     }
 
-    public List<String> getNextRule(String nonTerminal, Word Terminal) throws ParserBaseException {
-        Rule toreturn=driverTable[TerminalMap.get(Terminal.getName())][nonTerminalMap.get(nonTerminal)];
-
-        if(toreturn!=null){
-            return toreturn.getRules();
-        }
-        else{
-            throw new NullGrammerBranch(nonTerminal,Terminal);
-        }
+    public Rule getNextRule(String nonTerminal, Word Terminal, List<Word> words) throws ParserBaseException {
+        return driverTable[TerminalMap.get(Terminal.getName())][nonTerminalMap.get(nonTerminal)].searchObject(words);
     }
 
     public boolean inTerminal(String s) {
@@ -66,15 +70,11 @@ public class PredictiveAnalysisTable implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o){
-        if(o==null)
-            return false;
-        if(!o.getClass().getName().equals(this.getClass().getName()))
-            return false;
-        PredictiveAnalysisTable p=(PredictiveAnalysisTable) o;
+    public boolean equals(Object o) {
+        if (o == null) return false;
+        if (!o.getClass().getName().equals(this.getClass().getName())) return false;
+        PredictiveAnalysisTable p = (PredictiveAnalysisTable) o;
 
-        return p.nonTerminalMap.equals(this.nonTerminalMap) &&
-                p.TerminalMap.equals(this.TerminalMap) &&
-                Arrays.deepEquals(p.driverTable, this.driverTable);
+        return p.nonTerminalMap.equals(this.nonTerminalMap) && p.TerminalMap.equals(this.TerminalMap) && Arrays.deepEquals(p.driverTable, this.driverTable);
     }
 }

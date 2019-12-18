@@ -75,4 +75,16 @@ public class Word extends BranchTreeRoot {
     public String getBranchName(){
         return this.name;
     }
+
+    @Override
+    public boolean equals(Object o){
+        if(o==null){
+            return false;
+        }
+        else if(!o.getClass().getName().equals(this.getClass().getName())){
+            return false;
+        }
+        Word w=(Word) o;
+        return w.name.equals(this.name);
+    }
 }

@@ -21,7 +21,6 @@ public class Lex implements Serializable {
     private int nowStatus = 0;
     private String thisSQL;
     private int line = 0, list = 0, nowindex = 0;
-    private boolean annotationNull = false;
     private IdentifierSetter tokenSet;
     private LexRule lexRule;
 
@@ -145,11 +144,11 @@ public class Lex implements Serializable {
                     toLowerCase = !toLowerCase;
                     break;
                 default:
-                    if (multiValueState1.contains(status)) {
-                        if (toLowerCase) sb.append(getSmallLetter(thisSQL.charAt(loop)));
-                        else sb.append(thisSQL.charAt(loop));
-                        break;
-                    }
+//                    if (multiValueState1.contains(status)) {
+//                        if (toLowerCase) sb.append(getSmallLetter(thisSQL.charAt(loop)));
+//                        else sb.append(thisSQL.charAt(loop));
+//                        break;
+//                    }
                     nowStatus = status;
                     break upper;
             }
@@ -197,15 +196,15 @@ public class Lex implements Serializable {
                 case -1:
                     throw new InvalidSymbolException(line, list, thisSQL.charAt(loop));
                 default:
-                    if (multiValueState2.contains(status)) {
-                        if (point) {
-                            throw new SurplusDecimalPointException(line, list);
-                        } else {
-                            point = true;
-                            sb.append(thisSQL.charAt(loop));
-                            break;
-                        }
-                    }
+//                    if (multiValueState2.contains(status)) {
+//                        if (point) {
+//                            throw new SurplusDecimalPointException(line, list);
+//                        } else {
+//                            point = true;
+//                            sb.append(thisSQL.charAt(loop));
+//                            break;
+//                        }
+//                    }
                     nowStatus = status;
                     break upper;
             }
@@ -279,16 +278,16 @@ public class Lex implements Serializable {
                         break;
                     }
                 default:
-                    if (multiValueState4.contains(status)) {
-                        sb.append(thisSQL.charAt(loop));
-                        if (tokenSet.isAnnotation(sb.toString())) {
-                            nowindex = loop + 1;
-                            AnnotationMaker(sb);
-                            nowStatus = -3;
-                            return null;
-                        }
-                        break;
-                    }
+//                    if (multiValueState4.contains(status)) {
+//                        sb.append(thisSQL.charAt(loop));
+//                        if (tokenSet.isAnnotation(sb.toString())) {
+//                            nowindex = loop + 1;
+//                            AnnotationMaker(sb);
+//                            nowStatus = -3;
+//                            return null;
+//                        }
+//                        break;
+//                    }
                     nowStatus = status;
                     break upper;
             }

@@ -32,6 +32,9 @@ public class LexStructureAnalysis {
         return countCharMap();
     }
 
+    public Set<String> getAnalysiskeywordSet(){
+        return new HashSet<>(GFRmap.keySet());
+    }
     /**
      * 初步分解词法文件行中的词法规则
      *

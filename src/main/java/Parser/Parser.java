@@ -50,7 +50,7 @@ public class Parser implements Serializable {
 
         while (!analysisStack.isEmpty()) {
             if (words.isEmpty()) {
-                nextListRule = pat.getNextRule(analysisStack.getFirst(), sharp);
+                nextListRule = pat.getNextRule(analysisStack.getFirst(), sharp, words).getRules();
                 if (nextListRule == null) {
                     throw new StackNotEmpty(last, analysisStack);
                 } else if (nextListRule.get(0).equals("ε")) {
@@ -66,7 +66,7 @@ public class Parser implements Serializable {
                     nowTree.addChild(words.pop());
                     analysisStack.pop();
                 } else {
-                    nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst());
+                    nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst(), words).getRules();
                     if (nextListRule.get(0).equals("ε")) {
                         analysisStack.pop();
                     } else if (nextListRule.size() == 1 && pat.inTerminal(nextListRule.get(0))) {
@@ -76,7 +76,7 @@ public class Parser implements Serializable {
                         //这种情况说明遇到了不能直接转化成一个终结符的非终结符，
                         //所以接下来将会把这个非终结符在这里对应的文法产生式右部的所有符号逆序压栈
                         //
-                        String childClass=analysisStack.pop();
+                        String childClass = analysisStack.pop();
                         analysisStackFrame.push(analysisStack.size());
                         nodePop.push(nowTree);
 

@@ -29,6 +29,10 @@ public class Rule implements Serializable {
         return rules.get(rules.size() - 1);
     }
 
+    public String getRuleIndex(int index) {
+        return rules.get(index);
+    }
+
     public List<String> getRules() {
         return rules;
     }
@@ -49,4 +53,9 @@ public class Rule implements Serializable {
 
         return r.rules.equals(this.rules);
     }
+//
+//    @Override
+//    public int hashCode(){
+//
+//    }
 }
