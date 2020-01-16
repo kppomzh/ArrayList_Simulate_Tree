@@ -12,7 +12,10 @@ public class CompileException extends GrammerBaseException {
 
     public void addExceptionClass(Diagnostic d){
         super.append("类型名：");
-        super.append(d.getCode());
+        String classname=d.toString(),firstsplit="java"+java.io.File.separator,
+            replace=java.io.File.separator.equals("\\")?"\\\\":"/";
+        classname=classname.substring(classname.indexOf(firstsplit)+firstsplit.length(),classname.indexOf(".java"));
+        super.append(classname.replaceAll(replace,"\\."));
         super.append("\n");
 
         super.append("报错位置：");

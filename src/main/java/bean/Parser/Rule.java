@@ -5,7 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * 文法表达式在分析程序中对应的实体
+ * 文法产生式在分析程序中对应的实体
+ * 仅包含产生式右部
  */
 public class Rule implements Serializable {
     public final static Rule epsilon;

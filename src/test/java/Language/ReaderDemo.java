@@ -1,4 +1,4 @@
-package function;
+package Language;
 
 import Exceptions.GrammerMakerError.GrammerBaseException;
 import Exceptions.GrammerMakerError.Impl.FollowDebugException;
@@ -19,43 +19,38 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public class ReaderDemo {
-    @Test
-    public void main() throws IOException, GrammerBaseException, GrammerUndefined, ClassNotFoundException, FollowDebugException, IllegalAccessException, InvocationTargetException, InstantiationException, LexBaseException, ParserBaseException {
-        Reader reader=new Reader();
+    private Lex analex;
+    private Parser anaparser;
+
+    public void Analysis(List<String> files) throws IOException, GrammerBaseException, GrammerUndefined, ClassNotFoundException, FollowDebugException, IllegalAccessException, InvocationTargetException, InstantiationException, LexBaseException, ParserBaseException {
+        Reader reader=new Reader(files);
         reader.LexGenerate();
         reader.ParserGenerate();
         List<File> javaFiles = reader.ASTGenerate();
         RunampCompileASTClasses.getInstance().javaCompile(javaFiles.toArray(new File[0]));
 
-        Lex lex=reader.getLex();
-        Parser parser=reader.getParser();
+        analex=reader.getLex();
+        anaparser=reader.getParser();
 
         ObjectOutputStream lexStream=new ObjectOutputStream(new FileOutputStream(new File("lex.grammarclass")));
         ObjectOutputStream parserStream=new ObjectOutputStream(new FileOutputStream(new File("parser.grammarclass")));
 
-        lexStream.writeObject(lex);
-        parserStream.writeObject(parser);
-
-        BranchTreeRoot root=parser.Controller(lex.getWords("1+abs(6*8/7)"));
-        System.out.println(LanguageTreePrinter.printf(root,0));
-
-        ObjectInputStream lexinput=new ObjectInputStream(new FileInputStream(new File("lex.grammarclass")));
-        ObjectInputStream parserinput=new ObjectInputStream(new FileInputStream(new File("parser.grammarclass")));
-
-        System.out.println("反序列化词法分析器的一致性：" + lex.equals(lexinput.readObject()));
-        System.out.println("反序列化语法分析器的一致性：" + parser.equals(parserinput.readObject()));
+        lexStream.writeObject(analex);
+        parserStream.writeObject(anaparser);
     }
 
-    @Test
-    public void runSQL() throws IOException, ClassNotFoundException, LexBaseException, InstantiationException, IllegalAccessException, ParserBaseException, InvocationTargetException {
+    public void runSQLandCheck(String SQL) throws IOException, ClassNotFoundException, LexBaseException, InstantiationException, IllegalAccessException, ParserBaseException, InvocationTargetException {
         ObjectInputStream lexinput=new ObjectInputStream(new FileInputStream(new File("lex.grammarclass")));
         ObjectInputStream parserinput=new ObjectInputStream(new FileInputStream(new File("parser.grammarclass")));
 
         Lex lex=(Lex)lexinput.readObject();
         Parser parser=(Parser)parserinput.readObject();
 
-        BranchTreeRoot root=parser.Controller(lex.getWords("1+abs(6*8/7)"));
+        BranchTreeRoot root=parser.Controller(lex.getWords(SQL));
         System.out.println(LanguageTreePrinter.printf(root,0));
+
+        System.out.println("反序列化词法分析器的一致性：" + analex.equals(lexinput.readObject()));
+        System.out.println("反序列化语法分析器的一致性：" + anaparser.equals(parserinput.readObject()));
     }
 
     /**

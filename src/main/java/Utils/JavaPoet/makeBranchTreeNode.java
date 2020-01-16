@@ -44,6 +44,7 @@ public class makeBranchTreeNode {
     public File buildFile() throws IOException {
         ts.addMethod(Constructor.build());
         addChild.endControlFlow();
+        addChild.addStatement("wordsQueue.add(child)");
         GetAttribute.endControlFlow();
         GetAttribute.addStatement("return res");
 

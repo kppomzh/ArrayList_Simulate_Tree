@@ -2,13 +2,12 @@ package Utils.Parser;
 
 import Exceptions.ParserError.Impl.NullGrammerBranch;
 import Exceptions.ParserError.ParserBaseException;
+import bean.GrammerMaker.RuleInfo;
 import bean.Parser.Rule;
 import bean.Word;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * 用于LL(k)分析的多叉搜索树
@@ -34,8 +33,8 @@ public class MultiForkSearchTreeSet implements Serializable {
         return root.getObject(list);
     }
 
-    public void addObject(Rule rule) {
-        root.addObject(rule);
+    public void addObject(Rule rule, Map<String, RuleInfo> ruleMap) {
+        root.addObject(rule, ruleMap);
     }
 
     /**
@@ -65,14 +64,14 @@ public class MultiForkSearchTreeSet implements Serializable {
             this.elementName = elementName;
         }
 
-        public void addObject(Rule toAdd) {
+        public void addObject(Rule toAdd, Map<String, RuleInfo> ruleMap) {
             if (nochild) {
                 object = toAdd;
                 nochild = false;
                 apt = toAdd.length() == level;
                 return;
             } else if (!(apt || object == null)) {
-                addToChildEntry(object.getRuleIndex(level), object);
+                addToChildEntry(object.getRuleIndex(level), object, ruleMap);
                 object = null;
             }
 
@@ -80,7 +79,7 @@ public class MultiForkSearchTreeSet implements Serializable {
                 object = toAdd;
                 apt = true;
             } else {
-                addToChildEntry(toAdd.getRuleIndex(level), toAdd);
+                addToChildEntry(toAdd.getRuleIndex(level), toAdd, ruleMap);
             }
         }
 
@@ -94,12 +93,27 @@ public class MultiForkSearchTreeSet implements Serializable {
             }
         }
 
-        private void addToChildEntry(String entryName, Rule toAdd) {
-            if (!forks.containsKey(entryName)) {
+        private void addToChildEntry(String entryName, Rule toAdd, Map<String, RuleInfo> ruleMap) {
+            if(ruleMap.containsKey(entryName)){
+                Set<String> tempset=new HashSet<>(ruleMap.get(entryName).getFirstSet());
+                if(tempset.contains("ε")){
+                    tempset.remove("ε");
+                    tempset.addAll(ruleMap.get(entryName).getFollowSet());
+                }
+                for(String s:tempset){
+                    if (forks.containsKey(s)) {
+                        forks.get(s).addObject(toAdd, ruleMap);
+                    } else {
+                        forks.put(s, new Entry(level, s));
+                    }
+                }
+            }
+            else if (forks.containsKey(entryName)) {
+                forks.get(entryName).addObject(toAdd, ruleMap);
+            }
+            else{
                 forks.put(entryName, new Entry(level, entryName));
             }
-
-            forks.get(entryName).addObject(toAdd);
         }
     }
 

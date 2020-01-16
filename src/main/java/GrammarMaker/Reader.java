@@ -8,14 +8,14 @@ import Parser.Parser;
 import Utils.GrammerFileReader;
 import Utils.JavaPoet.makeBranchTreeNode;
 import Utils.env_properties;
-import bean.GrammerMaker.RuleInfo;
 import bean.GrammerMaker.LanguageNodeProperty;
-import bean.KVEntryImpl;
+import bean.GrammerMaker.RuleInfo;
 import bean.Lex.IdentifierSetter;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Parser.Rule;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -27,9 +27,9 @@ import java.util.*;
 public class Reader {
     private static final String[] FixLoadGrammer={"annotation.grammer","keyword.grammer","mark.grammer"};
     private int tokenNum=0;
-    private String grammerBasePath= env_properties.getEnvironment("grammerFilePath");
     private Collection<String> grammerFileList;
-    private GrammerFileReader grammerReader;
+    private static GrammerFileReader grammerReader=new GrammerFileReader(
+            env_properties.getEnvironment("grammerFilePath"));
     /**
      * 记录文法符号的信息，包括产生式右部，first集，follow集
      */
@@ -49,10 +49,13 @@ public class Reader {
     private int[] charMap;
 
     public Reader() throws IOException {
+        this(grammerReader.getLinesinFile("grammer.list"));
+    }
+
+    public Reader(Collection<String> grammerFile) throws IOException {
         ruleNameSet =new HashSet<>();
         keyNameSet=new HashSet<>();
-        grammerReader=new GrammerFileReader(grammerBasePath);
-        grammerFileList=grammerReader.getLinesinFile("grammer.list");
+        grammerFileList=grammerFile;
         ruleMap = new HashMap<>();
     }
 
@@ -149,8 +152,7 @@ public class Reader {
      */
     private PredictiveAnalysisTable makeMap() throws LeftCommonFactorConflict {
         PredictiveAnalysisTable ptable=new PredictiveAnalysisTable(keyNameSet,ruleNameSet);
-        for(String rulename: ruleNameSet){
-            String nonterminal=rulename;
+        for(String nonterminal: ruleNameSet){
             RuleInfo ri=ruleMap.get(nonterminal);
 
             for(Rule rule:ri.getRules()){
@@ -162,12 +164,12 @@ public class Reader {
                     tempset=ri.getFollowSet();
                 }
                 else{
-                    ptable.setDriverTable(rule.getFirstMark(), nonterminal, rule);
+                    ptable.setDriverTable(rule.getFirstMark(), nonterminal, rule, ruleMap);
                     continue;
                 }
 
                 for (String terminal : tempset) {
-                    ptable.setDriverTable(terminal, nonterminal, rule);
+                    ptable.setDriverTable(terminal, nonterminal, rule, ruleMap);
                 }
             }
         }

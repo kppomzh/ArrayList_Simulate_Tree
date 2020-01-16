@@ -3,6 +3,7 @@ package bean.Parser;
 import Exceptions.GrammerMakerError.Impl.LeftCommonFactorConflict;
 import Exceptions.ParserError.ParserBaseException;
 import Utils.Parser.MultiForkSearchTreeSet;
+import bean.GrammerMaker.RuleInfo;
 import bean.Word;
 
 import java.io.Serializable;
@@ -47,11 +48,11 @@ public class PredictiveAnalysisTable implements Serializable {
         }
     }
 
-    public void setDriverTable(String terminal, String nonTerminal, Rule r) throws LeftCommonFactorConflict {
+    public void setDriverTable(String terminal, String nonTerminal, Rule r, Map<String, RuleInfo> ruleMap) throws LeftCommonFactorConflict {
         if (terminal.equals("ε")) {
             return;
         }
-        driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)].addObject(r);
+        driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)].addObject(r, ruleMap);
 //        if(driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)]==null) {
 //            driverTable[TerminalMap.get(terminal)][nonTerminalMap.get(nonTerminal)] = r;
 //        }

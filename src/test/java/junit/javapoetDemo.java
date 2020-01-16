@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class javapoetDemo {
     @Test
     public void poettest() throws ClassNotFoundException, IOException {
-        makeJavaFile("Test").writeTo(new File("src/main/java"));
+        makeJavaFile("Test").writeTo(new File("src/Analysis/java"));
     }
 
     public JavaFile makeJavaFile(String classPath) throws ClassNotFoundException {
@@ -47,7 +47,7 @@ public class javapoetDemo {
 
     @Test
     public void afterAddCode() throws IOException {
-        String baseDir = "src/main/java";
+        String baseDir = "src/Analysis/java";
 
         TypeSpec ts;
 //        TypeSpec.Builder tbs=TypeSpec.classBuilder("abc");
