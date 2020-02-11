@@ -3,7 +3,7 @@ package GrammarMaker;
 import Exceptions.GrammerMakerError.Impl.InfinityRightRecursion;
 import Utils.Bool;
 import bean.GrammerMaker.LanguageNodeProperty;
-import bean.GrammerMaker.RuleInfo;
+import bean.GrammerMaker.nonTerminalMarkInfo;
 import bean.Parser.Rule;
 
 import java.util.*;
@@ -11,12 +11,12 @@ import java.util.*;
 public class ASTPropertiesMaker {
     //之所以新建一个Set对象的原因是在此过程中需要移除一些被认定为“循环保持符”的非终结符
     private List<String> toMakenonTerminal;
-    private Map<String, RuleInfo> ruleMap;
+    private Map<String, nonTerminalMarkInfo> ruleMap;
     private Map<String, LanguageNodeProperty> propMap;
     private Collection<String> markCollection;
     private boolean[] rm;
 
-    public ASTPropertiesMaker(Set<String> ruleNameSet, Map<String, RuleInfo> ruleMap, Collection<String> markCollection) {
+    public ASTPropertiesMaker(Set<String> ruleNameSet, Map<String, nonTerminalMarkInfo> ruleMap, Collection<String> markCollection) {
         toMakenonTerminal = new ArrayList<>(ruleNameSet);
         this.ruleMap = ruleMap;
         propMap = new HashMap<>();
@@ -43,7 +43,7 @@ public class ASTPropertiesMaker {
         LanguageNodeProperty thisProp = new LanguageNodeProperty(node);
         propMap.put(node, thisProp);
 
-        RuleInfo ri = ruleMap.get(node);
+        nonTerminalMarkInfo ri = ruleMap.get(node);
         int boolSize=ri.isGiveFollow()?ri.getRules().size()-1:ri.getRules().size();
         recursion = new boolean[boolSize];
         terminal = new boolean[boolSize];
@@ -103,7 +103,7 @@ public class ASTPropertiesMaker {
      * @param thisProp
      * @return
      */
-    private void FormalStructureCheck(RuleInfo ri, LanguageNodeProperty thisProp, boolean[] recursion, boolean[] terminal) throws InfinityRightRecursion {
+    private void FormalStructureCheck(nonTerminalMarkInfo ri, LanguageNodeProperty thisProp, boolean[] recursion, boolean[] terminal) throws InfinityRightRecursion {
         if (Bool.and(terminal)) {
             thisProp.setTerminalStructure();
             System.out.println(thisProp.getNodeName() + "：全部产生式由终结符组成");

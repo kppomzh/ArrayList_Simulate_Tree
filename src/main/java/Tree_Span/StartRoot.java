@@ -18,8 +18,8 @@ public class StartRoot extends BranchTreeRoot {
     }
 
     public BranchTreeRoot getRoot(){
-        BranchTreeRoot res=truestart;
-        truestart=null;
-        return res;
+//        BranchTreeRoot res=truestart;
+//        truestart=null;
+        return truestart;
     }
 }

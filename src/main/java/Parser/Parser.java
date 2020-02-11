@@ -1,7 +1,10 @@
 package Parser;
 
+import Exceptions.ASTError.ASTBaseException;
 import Exceptions.ParserError.Impl.InputNotEmpty;
+import Exceptions.ParserError.Impl.NullGrammerBranch;
 import Exceptions.ParserError.Impl.StackNotEmpty;
+import Exceptions.ParserError.Impl.parserMakeTreeException;
 import Exceptions.ParserError.ParserBaseException;
 import Tree_Span.BranchTreeRoot;
 import Tree_Span.StartRoot;
@@ -62,34 +65,40 @@ public class Parser implements Serializable {
                     }
                 }
             } else {
-                if (analysisStack.getFirst().equals(words.getFirst().getName())) {
-                    nowTree.addChild(words.pop());
-                    analysisStack.pop();
-                } else {
-                    nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst(), words).getRules();
-                    if (nextListRule.get(0).equals("ε")) {
+                try {
+                    if (analysisStack.getFirst().equals(words.getFirst().getName())) {
+                        nowTree.addChild(words.getFirst());
                         analysisStack.pop();
-                    } else if (nextListRule.size() == 1 && pat.inTerminal(nextListRule.get(0))) {
-                        nowTree.addChild(words.pop());
-                        analysisStack.pop();
+                        words.pop();
                     } else {
-                        //这种情况说明遇到了不能直接转化成一个终结符的非终结符，
-                        //所以接下来将会把这个非终结符在这里对应的文法产生式右部的所有符号逆序压栈
-                        //
+                        nextListRule = pat.getNextRule(analysisStack.getFirst(), words.getFirst(), words).getRules();
+
                         String childClass = analysisStack.pop();
-                        analysisStackFrame.push(analysisStack.size());
-                        nodePop.push(nowTree);
-
-                        int i = nextListRule.size() - 1;
-                        while (i >= 0) {
-                            analysisStack.push(nextListRule.get(i));
-                            i--;
-                        }
-
                         BranchTreeRoot childNode = runAST.ClassLoader(childClass);
                         nowTree.addChild(childNode);
-                        nowTree = childNode;
+
+                        if (nextListRule.get(0).equals("ε")) {
+                            //推导出空串直接弹出栈顶节点，不将该节点加入到正在推导节点的方法，在处理“同一非终结符下所有可能节点的首符集交集不为空”的时候可能会有些麻烦
+
+                        } else {
+                            //这种情况说明遇到了不能直接转化成一个终结符的非终结符，
+                            //所以接下来将会把这个非终结符在这里对应的文法产生式右部的所有符号逆序压栈
+                            //
+                            analysisStackFrame.push(analysisStack.size());
+                            nodePop.push(nowTree);
+
+                            int i = nextListRule.size() - 1;
+                            while (i >= 0) {
+                                analysisStack.push(nextListRule.get(i));
+                                i--;
+                            }
+
+                            nowTree = childNode;
+                        }
                     }
+                }
+                catch (ASTBaseException e){
+                    throw new parserMakeTreeException(e.getMessage(), words.getFirst());
                 }
                 if (analysisStack.size() == analysisStackFrame.peek()) {
                     nowTree = nodePop.pop();

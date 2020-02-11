@@ -3,7 +3,7 @@ package bean.Parser;
 import Exceptions.GrammerMakerError.Impl.LeftCommonFactorConflict;
 import Exceptions.ParserError.ParserBaseException;
 import Utils.Parser.MultiForkSearchTreeSet;
-import bean.GrammerMaker.RuleInfo;
+import bean.GrammerMaker.nonTerminalMarkInfo;
 import bean.Word;
 
 import java.io.Serializable;
@@ -48,7 +48,7 @@ public class PredictiveAnalysisTable implements Serializable {
         }
     }
 
-    public void setDriverTable(String terminal, String nonTerminal, Rule r, Map<String, RuleInfo> ruleMap) throws LeftCommonFactorConflict {
+    public void setDriverTable(String terminal, String nonTerminal, Rule r, Map<String, nonTerminalMarkInfo> ruleMap) throws LeftCommonFactorConflict {
         if (terminal.equals("ε")) {
             return;
         }

@@ -2,7 +2,7 @@ package Utils.Parser;
 
 import Exceptions.ParserError.Impl.NullGrammerBranch;
 import Exceptions.ParserError.ParserBaseException;
-import bean.GrammerMaker.RuleInfo;
+import bean.GrammerMaker.nonTerminalMarkInfo;
 import bean.Parser.Rule;
 import bean.Word;
 
@@ -15,7 +15,7 @@ import java.util.*;
  * 基本的结构是这样的：
  * 1.每个节点中包含一个层级，表示从根结点出发，这个节点是第几层的，同时定义根节点的层级是1。
  * 2.每个节点都有一个布尔变量nochild，用于指示这一层是否有子节点。
- * 3.每个节点都有一个布尔变量apt，用于指示这一层的object是否正好到此结束
+ * 3.每个节点都有一个布尔变量apt，用于指示这一层的object是否正好到此结束。
  * 3.每个节点包含多个分支，每个分支对应一个文法符号。分支的结构用ArrayList来做，用位移计算哈希散列；如果实在是有冲突，那么重新扩大ArrayList
  * 再进行散列。（或者偷懒直接用HashMap？至少要先自己试一下低级一点方案的能不能工作，不过如果有两个String的hashCode重复的话肯定就不行了。）
  * 组织LL分析表的时候，对于每一条新加入的文法规则，采取如下操作：
@@ -33,7 +33,7 @@ public class MultiForkSearchTreeSet implements Serializable {
         return root.getObject(list);
     }
 
-    public void addObject(Rule rule, Map<String, RuleInfo> ruleMap) {
+    public void addObject(Rule rule, Map<String, nonTerminalMarkInfo> ruleMap) {
         root.addObject(rule, ruleMap);
     }
 
@@ -64,7 +64,7 @@ public class MultiForkSearchTreeSet implements Serializable {
             this.elementName = elementName;
         }
 
-        public void addObject(Rule toAdd, Map<String, RuleInfo> ruleMap) {
+        public void addObject(Rule toAdd, Map<String, nonTerminalMarkInfo> ruleMap) {
             if (nochild) {
                 object = toAdd;
                 nochild = false;
@@ -93,7 +93,7 @@ public class MultiForkSearchTreeSet implements Serializable {
             }
         }
 
-        private void addToChildEntry(String entryName, Rule toAdd, Map<String, RuleInfo> ruleMap) {
+        private void addToChildEntry(String entryName, Rule toAdd, Map<String, nonTerminalMarkInfo> ruleMap) {
             if(ruleMap.containsKey(entryName)){
                 Set<String> tempset=new HashSet<>(ruleMap.get(entryName).getFirstSet());
                 if(tempset.contains("ε")){

@@ -9,7 +9,8 @@ import Utils.GrammerFileReader;
 import Utils.JavaPoet.makeBranchTreeNode;
 import Utils.env_properties;
 import bean.GrammerMaker.LanguageNodeProperty;
-import bean.GrammerMaker.RuleInfo;
+import bean.GrammerMaker.nonTerminalMarkInfo;
+import bean.KVEntryImpl;
 import bean.Lex.IdentifierSetter;
 import bean.Parser.PredictiveAnalysisTable;
 import bean.Parser.Rule;
@@ -31,9 +32,9 @@ public class Reader {
     private static GrammerFileReader grammerReader=new GrammerFileReader(
             env_properties.getEnvironment("grammerFilePath"));
     /**
-     * 记录文法符号的信息，包括产生式右部，first集，follow集
+     * 记录文法符号的信息，包括产生式右部，first集，follow集，select集
      */
-    private Map<String, RuleInfo> ruleMap;
+    private Map<String, nonTerminalMarkInfo> ruleMap;
     /**
      * ruleNameSet记录非终结符存在性
      * keyNameSet记录终结符存在性
@@ -135,11 +136,11 @@ public class Reader {
         Collection<LanguageNodeProperty> properties=maker.countASTProperties();
         for (LanguageNodeProperty prop:properties){
             //根据统计信息生成AST类
-            if(!prop.getTerminalStructure()) {
+//            if(!prop.getTerminalStructure()) {
                 makeBranchTreeNode node=new makeBranchTreeNode(prop);
                 node.AnalysisChildPropClass();
                 javaFiles.add(node.buildFile());
-            }
+//            }
         }
         return javaFiles;
     }
@@ -153,12 +154,14 @@ public class Reader {
     private PredictiveAnalysisTable makeMap() throws LeftCommonFactorConflict {
         PredictiveAnalysisTable ptable=new PredictiveAnalysisTable(keyNameSet,ruleNameSet);
         for(String nonterminal: ruleNameSet){
-            RuleInfo ri=ruleMap.get(nonterminal);
+            nonTerminalMarkInfo ri=ruleMap.get(nonterminal);
 
             for(Rule rule:ri.getRules()){
                 Set<String> tempset;
                 if(ruleNameSet.contains(rule.getFirstMark())){
-                    tempset=ruleMap.get(rule.getFirstMark()).getFirstSet();
+                    //这个地方有漏洞，如果该条产生式的首非终结符的first集合中存在ε，则tempset缺少follow集合
+                    //目前已经通过select集填补上
+                    tempset=ruleMap.get(rule.getFirstMark()).getSelectSet();
                 }
                 else if(rule==Rule.epsilon){
                     tempset=ri.getFollowSet();
@@ -183,15 +186,15 @@ public class Reader {
      * @param prop
      * @throws GrammerUndefined
      */
-    private void makeRule(Map<String,String> prop) throws GrammerUndefined {
-        for(Map.Entry<String, String> e:prop.entrySet()){
+    private void makeRule(List<KVEntryImpl<String,String>> prop) throws GrammerUndefined {
+        for(KVEntryImpl<String,String> e:prop){
             ruleNameSet.add(e.getKey());
         }
 
-        for(Map.Entry<String, String> e:prop.entrySet()){
+        for(KVEntryImpl<String,String> e:prop){
             //rulemap中未记录则新建RuleInfo类
             if(!ruleMap.containsKey(e.getKey())){
-                ruleMap.put(e.getKey(), new RuleInfo());
+                ruleMap.put(e.getKey(), new nonTerminalMarkInfo());
             }
 
 
@@ -228,7 +231,7 @@ public class Reader {
             return;
         }
 
-        RuleInfo ri=ruleMap.get(s);
+        nonTerminalMarkInfo ri=ruleMap.get(s);
         while(ri.hasNext()){
             String first=ri.getNextRule().getFirstMark();
             if(this.keyNameSet.contains(first)){
@@ -245,12 +248,16 @@ public class Reader {
     }
 
     /**
-     * 计算follow集
+     * 计算follow集和select集
      */
     private void countFollowCollection() throws FollowDebugException {
         ruleMap.get("S").addTerminaltoFollowSet("#");
         FollowCollectionMaker maker=new FollowCollectionMaker(ruleMap,ruleNameSet);
         ruleMap=maker.countFollowCollection();
+
+        for(nonTerminalMarkInfo ri:ruleMap.values()){
+            ri.makeSelectSet();
+        }
     }
 
 

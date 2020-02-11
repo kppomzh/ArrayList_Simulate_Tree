@@ -49,6 +49,8 @@ public class ReaderDemo {
         BranchTreeRoot root=parser.Controller(lex.getWords(SQL));
         System.out.println(LanguageTreePrinter.printf(root,0));
 
+        lexinput=new ObjectInputStream(new FileInputStream(new File("lex.grammarclass")));
+        parserinput=new ObjectInputStream(new FileInputStream(new File("parser.grammarclass")));
         System.out.println("反序列化词法分析器的一致性：" + analex.equals(lexinput.readObject()));
         System.out.println("反序列化语法分析器的一致性：" + anaparser.equals(parserinput.readObject()));
     }

@@ -26,7 +26,7 @@ public class LexStructureAnalysis {
         this.markCollection = markCollection;
 //        this.keyWordCollection = keyWordCollection;
 
-        GFRmap = GrammerFileReader.makeConbinationGrammer(keyWordCollection);
+        GFRmap = GrammerFileReader.makeBaseGrammer(keyWordCollection);
         keywordIngredientResolution(GFRmap);
 
         return countCharMap();

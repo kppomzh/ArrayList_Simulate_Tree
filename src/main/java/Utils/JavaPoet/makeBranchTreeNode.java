@@ -44,7 +44,6 @@ public class makeBranchTreeNode {
     public File buildFile() throws IOException {
         ts.addMethod(Constructor.build());
         addChild.endControlFlow();
-        addChild.addStatement("wordsQueue.add(child)");
         GetAttribute.endControlFlow();
         GetAttribute.addStatement("return res");
 
@@ -73,11 +72,11 @@ public class makeBranchTreeNode {
         }
 
         for (Map.Entry<String, LanguageNodeProperty> notloopEntry : notloop.entrySet()) {
-            if (notloopEntry.getValue().getTerminalStructure()) {
-                regAttribute(notloopEntry.getValue().getNodeName(),notloopEntry.getValue().getTerminalAttribute());
-            } else {
+//            if (notloopEntry.getValue().getTerminalStructure()) {
+//                regAttribute(notloopEntry.getValue().getNodeName(),notloopEntry.getValue().getTerminalAttribute());
+//            } else {
                 regNormalMethod(notloopEntry.getValue().getNodeName());
-            }
+//            }
         }
 
         AnalysisAttrTerminal();
@@ -195,7 +194,8 @@ public class makeBranchTreeNode {
         builder[0].addAnnotation(Override.class);
         builder[0].addModifiers(Modifier.PUBLIC);
         builder[0].addParameter(TypeName.get(BranchTreeRoot.class), "child");
-        builder[0].addStatement("super.wordsQueue.add(child)");
+        builder[0].addException(ASTBaseException.class);
+        builder[0].addStatement("super.addChild(child)");
         builder[0].beginControlFlow("switch(child.getBranchName())");
 
         builder[1] = MethodSpec.methodBuilder("GetAttribute");

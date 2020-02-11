@@ -4,15 +4,17 @@ import bean.Parser.Rule;
 
 import java.util.*;
 
-public class RuleInfo {
-//    private String rulename;
+/**
+ * 一个非终结符所应当包含的分析信息
+ */
+public class nonTerminalMarkInfo {
 
-    private Set<String> firstSet,followSet;
+    private Set<String> firstSet,followSet,selectSet;
     private List<Rule> rules;
     private Iterator<Rule> rulesIterator;
     private boolean giveFollow,equalTerminal;
 
-    public RuleInfo(){
+    public nonTerminalMarkInfo(){
         firstSet=new HashSet<>();
         followSet=new HashSet<>();
         rules=new LinkedList<>();
@@ -49,6 +51,22 @@ public class RuleInfo {
         this.firstSet.add(firstMark);
     }
 
+    public Set<String> getSelectSet(){
+        return selectSet;
+    }
+
+    public void makeSelectSet(){
+        if(isGiveFollow()){
+            selectSet=new HashSet<>();
+            selectSet.addAll(firstSet);
+            selectSet.remove("ε");
+            selectSet.addAll(followSet);
+        }
+        else{
+            selectSet=firstSet;
+        }
+    }
+
     public List<Rule> getRules(){
         return this.rules;
     }
@@ -72,9 +90,9 @@ public class RuleInfo {
         return giveFollow;
     }
 
-    public boolean isEqualTerminal() {
-        return equalTerminal;
-    }
+//    public boolean isEqualTerminal() {
+//        return equalTerminal;
+//    }
 
     public void setEqualTerminal(boolean equalTerminal) {
         this.equalTerminal = equalTerminal;

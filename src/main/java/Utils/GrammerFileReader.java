@@ -41,28 +41,39 @@ public class GrammerFileReader {
         return lines;
     }
 
+    /**
+     * 用于词法定义文件的解析，词法定义可以不包含组成关键字的符号的分隔符(:)
+     * 做为词法来说，每个单词只能由唯一一种表示方式，所以在这里用Map来处理比较方便。
+     * @param lines
+     * @return
+     */
     public static Map<String,String> makeBaseGrammer(Collection<String> lines){
         Map<String,String> res=new HashMap<>();
         for(String mark:lines){
             int splitINdex=mark.lastIndexOf(':');
-            res.put(mark.substring(0,splitINdex).strip(),mark.substring(splitINdex+1).strip());
+            if(splitINdex>0)
+                res.put(mark.substring(0,splitINdex).strip(),mark.substring(splitINdex+1).strip());
+            else{
+                StringBuilder sb=new StringBuilder(mark);
+                for(int i=1;i<sb.length();i=i+2){
+                    sb.insert(i,' ');
+                }
+                res.put(mark,sb.toString());
+            }
         }
         return res;
     }
 
-    public static Map<String,String> makeConbinationGrammer(Collection<String> lines){
-        Map<String,String> prop=new HashMap<>();
+    /**
+     * 用于语法定义文件的解析
+     * @param lines
+     * @return
+     */
+    public static List<KVEntryImpl<String,String>> makeConbinationGrammer(Collection<String> lines){
+        List<KVEntryImpl<String,String>> prop=new LinkedList<>();
         for(String rule:lines){
             int splitINdex=rule.indexOf(':');
-            if(splitINdex>0)
-                prop.put(rule.substring(0,splitINdex).strip(),rule.substring(splitINdex+1).strip());
-            else{
-                StringBuilder sb=new StringBuilder(rule);
-                for(int i=1;i<sb.length();i=i+2){
-                    sb.insert(i,' ');
-                }
-                prop.put(rule,sb.toString());
-            }
+            prop.add(new KVEntryImpl<>(rule.substring(0,splitINdex).strip(),rule.substring(splitINdex+1).strip()));
         }
         return prop;
     }

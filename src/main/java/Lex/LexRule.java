@@ -1,9 +1,10 @@
 package Lex;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-public class LexRule {
+public class LexRule implements Serializable {
     private int[] charMap;
     private List<String> EOFStrings;
 

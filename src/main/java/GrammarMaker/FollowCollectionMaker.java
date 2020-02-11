@@ -1,8 +1,7 @@
 package GrammarMaker;
 
-import Exceptions.GrammerMakerError.Impl.FollowDebugException;
 import bean.GrammerMaker.ListMatrix;
-import bean.GrammerMaker.RuleInfo;
+import bean.GrammerMaker.nonTerminalMarkInfo;
 import bean.KVEntryImpl;
 import bean.Parser.Rule;
 
@@ -12,7 +11,7 @@ public class FollowCollectionMaker {
     /**
      * 记录文法符号的信息，包括产生式右部，first集，follow集
      */
-    private Map<String, RuleInfo> ruleMap;
+    private Map<String, nonTerminalMarkInfo> ruleMap;
     /**
      * ruleNameSet记录非终结符存在性
      * keyNameSet记录终结符存在性
@@ -33,7 +32,7 @@ public class FollowCollectionMaker {
     private Map<String, KVEntryImpl<Set<String>, Set<String>>> nodeDependents;
     private Set<String> loop2LoopCount;
 
-    public FollowCollectionMaker(Map<String, RuleInfo> ruleMap, Set<String> ruleNameSet) {
+    public FollowCollectionMaker(Map<String, nonTerminalMarkInfo> ruleMap, Set<String> ruleNameSet) {
         matrix = new ListMatrix<>();
         nonDependents = new ArrayList<>(ruleNameSet);
 
@@ -51,7 +50,7 @@ public class FollowCollectionMaker {
     /**
      * 计算主要过程
      */
-    public Map<String, RuleInfo> countFollowCollection() throws FollowDebugException {
+    public Map<String, nonTerminalMarkInfo> countFollowCollection() {
         ScanAllProduction();
         for (int loop = 0; loop < nonDependents.size(); loop++) {
             countSingalLinkNode(nonDependents.get(loop));
@@ -70,8 +69,8 @@ public class FollowCollectionMaker {
      * 扫描所有产生式，建立文法节点follow集合信息传递关系的邻接矩阵
      */
     public void ScanAllProduction() {
-        for (Map.Entry<String, RuleInfo> ruleInfoEntry : ruleMap.entrySet()) {
-            RuleInfo ri = ruleInfoEntry.getValue();
+        for (Map.Entry<String, nonTerminalMarkInfo> ruleInfoEntry : ruleMap.entrySet()) {
+            nonTerminalMarkInfo ri = ruleInfoEntry.getValue();
             for (Rule rule : ri.getRules()) {
                 int i = 0;
                 List<String> marks = rule.getRules();
@@ -138,15 +137,22 @@ public class FollowCollectionMaker {
      *
      * @param startNode
      */
-    private void countLoopLinkNode(String startNode) throws FollowDebugException {
-        Set<String> singalLoopNode = matrix.getOnLoopNodes(startNode);
+    private void countLoopLinkNode(String startNode) {
+        Set<String> singalLoopNode = matrix.getOnLoopNodes(startNode),allFollowSet=new HashSet<>();
         loop2LoopCount=new HashSet<>(singalLoopNode);
+        for(String nodeName:singalLoopNode){
+            if (ruleMap.get(nodeName).isGiveFollow()) {
+                //添加follow集到childrule的follow集
+                allFollowSet.addAll(ruleMap.get(nodeName).getFollowSet());
+            }
 
-        //环形依赖节点第一次循环
-        RecursiveLoopLinkNode(startNode, startNode, new HashSet<>(singalLoopNode), false);
+            allFollowSet.addAll(ruleMap.get(nodeName).getFirstSet());
+        }
 
-        //第二次循环
-        RecursiveLoopLinkNode(startNode, startNode, new HashSet<>(singalLoopNode), true);
+        for(String nodeName:singalLoopNode){
+            ruleMap.get(nodeName).addFollowSet(allFollowSet);
+            RemoveLoopLinkNode(startNode, new HashSet<>(singalLoopNode));
+        }
 
         //最后为环上的每个节点单独的递归向下清理链式依赖
         for (String downTraverse : singalLoopNode) {
@@ -154,9 +160,10 @@ public class FollowCollectionMaker {
         }
     }
 
-    private void RecursiveLoopLinkNode(String startNode, String endNode, Set<String> singalLoopNode, boolean delDependent) throws FollowDebugException {
-        String fatherNode = startNode, childNode = null;
+    private void RemoveLoopLinkNode(String startNode, Set<String> singalLoopNode) {
+        String fatherNode = startNode, childNode;
 
+        //onLoopChilds：搜索环上所有出发节点能到达的节点
         Set<String> onLoopChilds = matrix.getStartNodeConnects(fatherNode, true), nextNodes = new HashSet<>();
         /* 计算有直接依赖的节点和处于环上的节点的交集，理想情况下应该集合中只剩一个节点
          * 但是如果出现有多个节点也不需要慌张，在多个节点的中寻找在环上只依赖当前fatherNode的节点去遍历即可。
@@ -165,35 +172,8 @@ public class FollowCollectionMaker {
         Iterator<String> childsIterable = onLoopChilds.iterator();
         while (childsIterable.hasNext()) {
             childNode = childsIterable.next();
-            ;
-            if (delDependent) {
-                delDependents(childNode, fatherNode, false);
-            }
-            else{
-                if(addFollowSet(fatherNode, childNode)){
-                    loop2LoopCount.remove(childNode);
-                }
-                else{
-                    //实际上这里整体应该用引用计数来处理
-                }
-            }
 
-            Set<String> tempChildCount = matrix.getEndNodeConnects(childNode, true);
-            tempChildCount.retainAll(singalLoopNode);
-            //处于环上的节点和到达childNode的节点的交集只有一个，那么肯定是fatherNode，所以此时可以向这个节点递归
-            if (tempChildCount.size() == 1) {
-                nextNodes.add(childNode);
-            }
-
-            if (!tempChildCount.containsAll(nodeDependents.get(childNode).getValue())) {
-                throw new FollowDebugException(this.getClass().getName(), childNode, "175");
-            }
-        }
-
-        for (String nextNode : nextNodes) {
-            if (!endNode.equals(nextNode)) {
-                RecursiveLoopLinkNode(nextNode, endNode, singalLoopNode, delDependent);
-            }
+            delDependents(childNode, fatherNode, false);
         }
     }
 
@@ -201,6 +181,7 @@ public class FollowCollectionMaker {
      * 仅适用于文法产生式右部继承关系的添加
      * @param fatherule
      * @param childrule
+     * @return 如果child添加follow集之后仍然保持相同的集合大小，返回true
      */
     private boolean addFollowSet(String fatherule, String childrule) {
         int follownum=ruleMap.get(childrule).getFollowSet().size();
@@ -242,8 +223,10 @@ public class FollowCollectionMaker {
     private void delDependents(String childNode, String fatherNode, boolean ForwardInheritance) {
         if (!nonDependents.contains(childNode)) {
             if (ForwardInheritance) {
+                //删除链式依赖的依赖关系
                 nodeDependents.get(childNode).getKey().remove(fatherNode);
             } else {
+                //删除环式依赖的依赖关系
                 nodeDependents.get(childNode).getValue().remove(fatherNode);
             }
 
